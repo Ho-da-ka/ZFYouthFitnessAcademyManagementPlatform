@@ -1,5 +1,8 @@
 package com.shuzi.managementplatform.common.api;
 
+/**
+ * Unified API response wrapper used by all REST endpoints.
+ */
 public record ApiResponse<T>(boolean success, String message, T data) {
 
     public static <T> ApiResponse<T> ok(T data) {

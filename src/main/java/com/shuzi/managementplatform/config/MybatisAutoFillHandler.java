@@ -6,6 +6,9 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 
+/**
+ * Auto-fill created/updated timestamps for insert and update operations.
+ */
 @Component
 public class MybatisAutoFillHandler implements MetaObjectHandler {
 

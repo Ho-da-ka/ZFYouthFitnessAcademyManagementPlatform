@@ -17,6 +17,10 @@ import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+/**
+ * Security baseline configuration.
+ * Uses HTTP Basic with in-memory users and endpoint-level RBAC rules.
+ */
 @Configuration
 @EnableMethodSecurity
 public class SecurityConfig {
@@ -27,9 +31,12 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable))
                 .authorizeHttpRequests(auth -> auth
+                        // Public endpoints
                         .requestMatchers("/api/v1/public/**", "/error").permitAll()
+                        // Admin-only management operations
                         .requestMatchers(HttpMethod.POST, "/api/v1/students/**", "/api/v1/courses/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/v1/students/**", "/api/v1/courses/**").hasRole("ADMIN")
+                        // Coach and admin domain operations
                         .requestMatchers("/api/v1/attendances/**", "/api/v1/fitness-tests/**").hasAnyRole("ADMIN", "COACH")
                         .requestMatchers("/api/v1/**").authenticated()
                         .anyRequest().permitAll()

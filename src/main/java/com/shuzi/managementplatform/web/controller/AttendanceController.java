@@ -18,9 +18,12 @@ import org.springframework.web.bind.annotation.RestController;
 import java.time.LocalDate;
 import java.util.List;
 
+/**
+ * Attendance record endpoints.
+ */
 @RestController
 @RequestMapping("/api/v1/attendances")
-@Tag(name = "Attendance", description = "考勤记录管理接口")
+@Tag(name = "Attendance", description = "Attendance record endpoints")
 public class AttendanceController {
 
     private final AttendanceService attendanceService;
@@ -31,14 +34,14 @@ public class AttendanceController {
 
     @PreAuthorize("hasAnyRole('ADMIN','COACH')")
     @PostMapping
-    @Operation(summary = "记录考勤", description = "提交学员在课程中的出勤状态")
+    @Operation(summary = "Create attendance record", description = "Record student attendance for a course")
     public ApiResponse<AttendanceResponse> create(@Valid @RequestBody AttendanceCreateRequest request) {
         return ApiResponse.ok("attendance recorded", attendanceService.create(request));
     }
 
     @PreAuthorize("hasAnyRole('ADMIN','COACH')")
     @GetMapping
-    @Operation(summary = "查询考勤", description = "按学员、课程、日期范围查询考勤记录")
+    @Operation(summary = "Search attendance", description = "Query by student, course and date range")
     public ApiResponse<List<AttendanceResponse>> search(
             @RequestParam(required = false) Long studentId,
             @RequestParam(required = false) Long courseId,

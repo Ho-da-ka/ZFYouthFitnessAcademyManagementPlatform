@@ -10,13 +10,16 @@ import org.springframework.web.bind.annotation.RestController;
 import java.time.LocalDateTime;
 import java.util.Map;
 
+/**
+ * Public non-authenticated endpoints.
+ */
 @RestController
 @RequestMapping("/api/v1/public")
-@Tag(name = "Public", description = "公共可访问接口")
+@Tag(name = "Public", description = "Public health endpoints")
 public class HealthController {
 
     @GetMapping("/ping")
-    @Operation(summary = "健康检查", description = "返回服务状态与当前时间")
+    @Operation(summary = "Health check", description = "Return service status and current server time")
     public ApiResponse<Map<String, Object>> ping() {
         return ApiResponse.ok(Map.of(
                 "service", "management-platform",

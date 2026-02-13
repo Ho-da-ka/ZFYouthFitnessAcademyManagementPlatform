@@ -10,6 +10,9 @@ import com.shuzi.managementplatform.domain.enums.StudentStatus;
 
 import java.time.LocalDate;
 
+/**
+ * Student aggregate root mapped to table {@code students}.
+ */
 @TableName("students")
 public class Student extends BaseEntity {
 

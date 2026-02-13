@@ -9,6 +9,9 @@ import com.shuzi.managementplatform.common.model.BaseEntity;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
+/**
+ * Fitness assessment record mapped to table {@code fitness_test_records}.
+ */
 @TableName("fitness_test_records")
 public class FitnessTestRecord extends BaseEntity {
 

@@ -19,6 +19,9 @@ import org.springframework.util.StringUtils;
 
 import java.util.List;
 
+/**
+ * Course domain service for CRUD and filtered pagination.
+ */
 @Service
 public class CourseService {
 
@@ -30,6 +33,7 @@ public class CourseService {
 
     @Transactional
     public CourseResponse create(CourseCreateRequest request) {
+        // Business key uniqueness check.
         Long count = courseMapper.selectCount(
                 Wrappers.<Course>lambdaQuery().eq(Course::getCourseCode, request.courseCode())
         );
@@ -79,6 +83,7 @@ public class CourseService {
 
     @Transactional(readOnly = true)
     public IPage<CourseResponse> page(String name, CourseStatus status, int page, int size) {
+        // MyBatis-Plus page index starts from 1; API contract uses 0-based index.
         Page<Course> pageRequest = new Page<>(page + 1L, size);
         LambdaQueryWrapper<Course> query = Wrappers.<Course>lambdaQuery();
 

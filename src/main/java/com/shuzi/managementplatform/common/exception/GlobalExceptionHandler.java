@@ -10,6 +10,9 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.util.stream.Collectors;
 
+/**
+ * Centralized exception translation to consistent HTTP responses.
+ */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -25,6 +28,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiResponse<Void>> handleValidation(MethodArgumentNotValidException ex) {
+        // Merge all field-level validation messages into one response string.
         String message = ex.getBindingResult()
                 .getFieldErrors()
                 .stream()

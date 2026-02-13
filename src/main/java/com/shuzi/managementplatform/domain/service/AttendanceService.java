@@ -14,6 +14,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.util.List;
 
+/**
+ * Attendance service handles write/query operations for class attendance records.
+ */
 @Service
 public class AttendanceService {
 
@@ -48,6 +51,7 @@ public class AttendanceService {
 
     @Transactional(readOnly = true)
     public List<AttendanceResponse> search(Long studentId, Long courseId, LocalDate startDate, LocalDate endDate) {
+        // Build dynamic filtering conditions only when parameters are provided.
         LambdaQueryWrapper<AttendanceRecord> query = Wrappers.<AttendanceRecord>lambdaQuery();
         if (studentId != null) {
             query.eq(AttendanceRecord::getStudentId, studentId);

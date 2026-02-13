@@ -11,6 +11,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+/**
+ * Fitness test service for recording and querying student assessment timelines.
+ */
 @Service
 public class FitnessTestService {
 

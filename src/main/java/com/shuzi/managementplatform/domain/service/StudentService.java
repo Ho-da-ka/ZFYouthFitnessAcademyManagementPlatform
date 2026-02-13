@@ -19,6 +19,9 @@ import org.springframework.util.StringUtils;
 
 import java.util.List;
 
+/**
+ * Student domain service for CRUD and filtered pagination.
+ */
 @Service
 public class StudentService {
 
@@ -30,6 +33,7 @@ public class StudentService {
 
     @Transactional
     public StudentResponse create(StudentCreateRequest request) {
+        // Business key uniqueness check.
         Long count = studentMapper.selectCount(
                 Wrappers.<Student>lambdaQuery().eq(Student::getStudentNo, request.studentNo())
         );
@@ -77,6 +81,7 @@ public class StudentService {
 
     @Transactional(readOnly = true)
     public IPage<StudentResponse> page(String name, StudentStatus status, int page, int size) {
+        // MyBatis-Plus page index starts from 1; API contract uses 0-based index.
         Page<Student> pageRequest = new Page<>(page + 1L, size);
         LambdaQueryWrapper<Student> query = Wrappers.<Student>lambdaQuery();
 

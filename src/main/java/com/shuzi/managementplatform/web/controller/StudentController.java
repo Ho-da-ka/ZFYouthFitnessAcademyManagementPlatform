@@ -20,9 +20,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * Student management REST endpoints.
+ */
 @RestController
 @RequestMapping("/api/v1/students")
-@Tag(name = "Student", description = "学员档案管理接口")
+@Tag(name = "Student", description = "Student profile management endpoints")
 public class StudentController {
 
     private final StudentService studentService;
@@ -33,28 +36,28 @@ public class StudentController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
-    @Operation(summary = "创建学员", description = "创建新的学员档案信息")
+    @Operation(summary = "Create student", description = "Create a new student profile")
     public ApiResponse<StudentResponse> create(@Valid @RequestBody StudentCreateRequest request) {
         return ApiResponse.ok("student created", studentService.create(request));
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
-    @Operation(summary = "更新学员", description = "按学员ID更新档案信息")
+    @Operation(summary = "Update student", description = "Update student profile by ID")
     public ApiResponse<StudentResponse> update(@PathVariable Long id, @Valid @RequestBody StudentUpdateRequest request) {
         return ApiResponse.ok("student updated", studentService.update(id, request));
     }
 
     @PreAuthorize("hasAnyRole('ADMIN','COACH')")
     @GetMapping("/{id}")
-    @Operation(summary = "查询学员详情", description = "按学员ID查询档案")
+    @Operation(summary = "Get student detail", description = "Fetch student profile by ID")
     public ApiResponse<StudentResponse> getById(@PathVariable Long id) {
         return ApiResponse.ok(studentService.getById(id));
     }
 
     @PreAuthorize("hasAnyRole('ADMIN','COACH')")
     @GetMapping
-    @Operation(summary = "分页查询学员", description = "支持按姓名和状态进行分页筛选")
+    @Operation(summary = "List students", description = "Paginated query by optional name and status")
     public ApiResponse<PageResponse<StudentResponse>> page(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,

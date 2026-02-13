@@ -9,6 +9,9 @@ import com.shuzi.managementplatform.domain.enums.AttendanceStatus;
 
 import java.time.LocalDate;
 
+/**
+ * Attendance record entity mapped to table {@code attendance_records}.
+ */
 @TableName("attendance_records")
 public class AttendanceRecord extends BaseEntity {
 

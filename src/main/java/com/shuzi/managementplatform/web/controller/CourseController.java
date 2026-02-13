@@ -20,9 +20,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * Course management REST endpoints.
+ */
 @RestController
 @RequestMapping("/api/v1/courses")
-@Tag(name = "Course", description = "课程与排课基础管理接口")
+@Tag(name = "Course", description = "Course management endpoints")
 public class CourseController {
 
     private final CourseService courseService;
@@ -33,28 +36,28 @@ public class CourseController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
-    @Operation(summary = "创建课程", description = "创建新的课程记录")
+    @Operation(summary = "Create course", description = "Create a new course")
     public ApiResponse<CourseResponse> create(@Valid @RequestBody CourseCreateRequest request) {
         return ApiResponse.ok("course created", courseService.create(request));
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
-    @Operation(summary = "更新课程", description = "按课程ID更新课程信息")
+    @Operation(summary = "Update course", description = "Update course by ID")
     public ApiResponse<CourseResponse> update(@PathVariable Long id, @Valid @RequestBody CourseUpdateRequest request) {
         return ApiResponse.ok("course updated", courseService.update(id, request));
     }
 
     @PreAuthorize("hasAnyRole('ADMIN','COACH')")
     @GetMapping("/{id}")
-    @Operation(summary = "查询课程详情", description = "按课程ID查询课程信息")
+    @Operation(summary = "Get course detail", description = "Fetch course by ID")
     public ApiResponse<CourseResponse> getById(@PathVariable Long id) {
         return ApiResponse.ok(courseService.getById(id));
     }
 
     @PreAuthorize("hasAnyRole('ADMIN','COACH')")
     @GetMapping
-    @Operation(summary = "分页查询课程", description = "支持按课程名称和状态进行分页筛选")
+    @Operation(summary = "List courses", description = "Paginated query by optional name and status")
     public ApiResponse<PageResponse<CourseResponse>> page(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,

@@ -5,6 +5,9 @@ import com.baomidou.mybatisplus.annotation.TableField;
 
 import java.time.LocalDateTime;
 
+/**
+ * Common audit fields shared by domain entities.
+ */
 public abstract class BaseEntity {
 
     @TableField(value = "created_at", fill = FieldFill.INSERT)

@@ -9,6 +9,9 @@ import com.shuzi.managementplatform.domain.enums.CourseStatus;
 
 import java.time.LocalDateTime;
 
+/**
+ * Course aggregate root mapped to table {@code courses}.
+ */
 @TableName("courses")
 public class Course extends BaseEntity {
 

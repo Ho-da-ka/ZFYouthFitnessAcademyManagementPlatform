@@ -17,9 +17,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
+/**
+ * Fitness test record endpoints.
+ */
 @RestController
 @RequestMapping("/api/v1/fitness-tests")
-@Tag(name = "FitnessTest", description = "体能测试记录接口")
+@Tag(name = "FitnessTest", description = "Fitness assessment endpoints")
 public class FitnessTestController {
 
     private final FitnessTestService fitnessTestService;
@@ -30,14 +33,14 @@ public class FitnessTestController {
 
     @PreAuthorize("hasAnyRole('ADMIN','COACH')")
     @PostMapping
-    @Operation(summary = "新增体测记录", description = "录入学员体能测试结果")
+    @Operation(summary = "Create fitness test record", description = "Save one assessment result for a student")
     public ApiResponse<FitnessTestResponse> create(@Valid @RequestBody FitnessTestCreateRequest request) {
         return ApiResponse.ok("fitness test recorded", fitnessTestService.create(request));
     }
 
     @PreAuthorize("hasAnyRole('ADMIN','COACH')")
     @GetMapping
-    @Operation(summary = "查询学员体测时间线", description = "按学员ID获取体测记录（时间倒序）")
+    @Operation(summary = "List student fitness tests", description = "Query assessment timeline by student ID")
     public ApiResponse<List<FitnessTestResponse>> listByStudent(@RequestParam Long studentId) {
         return ApiResponse.ok(fitnessTestService.listByStudent(studentId));
     }
