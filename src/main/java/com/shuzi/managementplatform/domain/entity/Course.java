@@ -1,52 +1,41 @@
 package com.shuzi.managementplatform.domain.entity;
 
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 import com.shuzi.managementplatform.common.model.BaseEntity;
 import com.shuzi.managementplatform.domain.enums.CourseStatus;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
 
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "courses")
+@TableName("courses")
 public class Course extends BaseEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
-    @Column(nullable = false, unique = true, length = 32)
+    @TableField("course_code")
     private String courseCode;
 
-    @Column(nullable = false, length = 100)
     private String name;
 
-    @Column(nullable = false, length = 64)
+    @TableField("course_type")
     private String courseType;
 
-    @Column(nullable = false, length = 64)
+    @TableField("coach_name")
     private String coachName;
 
-    @Column(nullable = false, length = 128)
     private String venue;
 
-    @Column(nullable = false)
+    @TableField("start_time")
     private LocalDateTime startTime;
 
-    @Column(nullable = false)
+    @TableField("duration_minutes")
     private Integer durationMinutes;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 16)
     private CourseStatus status = CourseStatus.PLANNED;
 
-    @Column(length = 255)
     private String description;
 
     public Long getId() {

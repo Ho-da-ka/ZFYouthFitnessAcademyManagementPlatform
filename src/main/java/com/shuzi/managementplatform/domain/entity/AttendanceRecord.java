@@ -1,65 +1,51 @@
 package com.shuzi.managementplatform.domain.entity;
 
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 import com.shuzi.managementplatform.common.model.BaseEntity;
 import com.shuzi.managementplatform.domain.enums.AttendanceStatus;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
 
 import java.time.LocalDate;
 
-@Entity
-@Table(name = "attendance_records")
+@TableName("attendance_records")
 public class AttendanceRecord extends BaseEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "student_id", nullable = false)
-    private Student student;
+    @TableField("student_id")
+    private Long studentId;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "course_id", nullable = false)
-    private Course course;
+    @TableField("course_id")
+    private Long courseId;
 
-    @Column(nullable = false)
+    @TableField("attendance_date")
     private LocalDate attendanceDate;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 16)
     private AttendanceStatus status;
 
-    @Column(length = 255)
     private String note;
 
     public Long getId() {
         return id;
     }
 
-    public Student getStudent() {
-        return student;
+    public Long getStudentId() {
+        return studentId;
     }
 
-    public void setStudent(Student student) {
-        this.student = student;
+    public void setStudentId(Long studentId) {
+        this.studentId = studentId;
     }
 
-    public Course getCourse() {
-        return course;
+    public Long getCourseId() {
+        return courseId;
     }
 
-    public void setCourse(Course course) {
-        this.course = course;
+    public void setCourseId(Long courseId) {
+        this.courseId = courseId;
     }
 
     public LocalDate getAttendanceDate() {

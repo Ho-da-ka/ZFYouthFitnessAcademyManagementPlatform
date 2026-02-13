@@ -27,7 +27,7 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/v1/public/**", "/error", "/h2-console/**").permitAll()
+                        .requestMatchers("/api/v1/public/**", "/error").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/students/**", "/api/v1/courses/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/v1/students/**", "/api/v1/courses/**").hasRole("ADMIN")
                         .requestMatchers("/api/v1/attendances/**", "/api/v1/fitness-tests/**").hasAnyRole("ADMIN", "COACH")

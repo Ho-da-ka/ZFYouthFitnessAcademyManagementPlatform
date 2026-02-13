@@ -1,56 +1,46 @@
 package com.shuzi.managementplatform.domain.entity;
 
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 import com.shuzi.managementplatform.common.model.BaseEntity;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
-@Entity
-@Table(name = "fitness_test_records")
+@TableName("fitness_test_records")
 public class FitnessTestRecord extends BaseEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "student_id", nullable = false)
-    private Student student;
+    @TableField("student_id")
+    private Long studentId;
 
-    @Column(nullable = false)
+    @TableField("test_date")
     private LocalDate testDate;
 
-    @Column(nullable = false, length = 100)
+    @TableField("item_name")
     private String itemName;
 
-    @Column(nullable = false, precision = 10, scale = 2)
+    @TableField("test_value")
     private BigDecimal testValue;
 
-    @Column(nullable = false, length = 32)
     private String unit;
 
-    @Column(length = 255)
     private String comment;
 
     public Long getId() {
         return id;
     }
 
-    public Student getStudent() {
-        return student;
+    public Long getStudentId() {
+        return studentId;
     }
 
-    public void setStudent(Student student) {
-        this.student = student;
+    public void setStudentId(Long studentId) {
+        this.studentId = studentId;
     }
 
     public LocalDate getTestDate() {

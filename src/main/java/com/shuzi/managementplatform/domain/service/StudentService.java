@@ -1,35 +1,39 @@
 package com.shuzi.managementplatform.domain.service;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.shuzi.managementplatform.common.exception.BusinessException;
 import com.shuzi.managementplatform.common.exception.ResourceNotFoundException;
 import com.shuzi.managementplatform.domain.entity.Student;
 import com.shuzi.managementplatform.domain.enums.StudentStatus;
-import com.shuzi.managementplatform.domain.repository.StudentRepository;
+import com.shuzi.managementplatform.domain.mapper.StudentMapper;
 import com.shuzi.managementplatform.web.dto.student.StudentCreateRequest;
 import com.shuzi.managementplatform.web.dto.student.StudentResponse;
 import com.shuzi.managementplatform.web.dto.student.StudentUpdateRequest;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.util.List;
 
 @Service
 public class StudentService {
 
-    private final StudentRepository studentRepository;
+    private final StudentMapper studentMapper;
 
-    public StudentService(StudentRepository studentRepository) {
-        this.studentRepository = studentRepository;
+    public StudentService(StudentMapper studentMapper) {
+        this.studentMapper = studentMapper;
     }
 
     @Transactional
     public StudentResponse create(StudentCreateRequest request) {
-        if (studentRepository.existsByStudentNo(request.studentNo())) {
+        Long count = studentMapper.selectCount(
+                Wrappers.<Student>lambdaQuery().eq(Student::getStudentNo, request.studentNo())
+        );
+        if (count != null && count > 0) {
             throw new BusinessException(HttpStatus.CONFLICT, "studentNo already exists");
         }
         Student student = new Student();
@@ -41,13 +45,16 @@ public class StudentService {
         student.setGuardianPhone(request.guardianPhone());
         student.setStatus(request.status() == null ? StudentStatus.ACTIVE : request.status());
         student.setRemarks(request.remarks());
-        return toResponse(studentRepository.save(student));
+        studentMapper.insert(student);
+        return toResponse(student);
     }
 
     @Transactional
     public StudentResponse update(Long id, StudentUpdateRequest request) {
-        Student student = studentRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("student not found: " + id));
+        Student student = studentMapper.selectById(id);
+        if (student == null) {
+            throw new ResourceNotFoundException("student not found: " + id);
+        }
         student.setName(request.name());
         student.setGender(request.gender());
         student.setBirthDate(request.birthDate());
@@ -55,39 +62,47 @@ public class StudentService {
         student.setGuardianPhone(request.guardianPhone());
         student.setStatus(request.status());
         student.setRemarks(request.remarks());
-        return toResponse(studentRepository.save(student));
+        studentMapper.updateById(student);
+        return toResponse(student);
     }
 
     @Transactional(readOnly = true)
     public StudentResponse getById(Long id) {
-        return toResponse(studentRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("student not found: " + id)));
+        Student student = studentMapper.selectById(id);
+        if (student == null) {
+            throw new ResourceNotFoundException("student not found: " + id);
+        }
+        return toResponse(student);
     }
 
     @Transactional(readOnly = true)
-    public Page<StudentResponse> page(String name, StudentStatus status, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        String normalizedName = name == null ? null : name.trim();
-        Page<Student> result;
+    public IPage<StudentResponse> page(String name, StudentStatus status, int page, int size) {
+        Page<Student> pageRequest = new Page<>(page + 1L, size);
+        LambdaQueryWrapper<Student> query = Wrappers.<Student>lambdaQuery();
 
-        if (normalizedName != null && !normalizedName.isEmpty() && status != null) {
-            result = studentRepository.findByNameContainingIgnoreCaseAndStatus(normalizedName, status, pageable);
-        } else if (normalizedName != null && !normalizedName.isEmpty()) {
-            result = studentRepository.findByNameContainingIgnoreCase(normalizedName, pageable);
-        } else if (status != null) {
-            result = studentRepository.findByStatus(status, pageable);
-        } else {
-            result = studentRepository.findAll(pageable);
+        if (StringUtils.hasText(name)) {
+            query.like(Student::getName, name.trim());
         }
+        if (status != null) {
+            query.eq(Student::getStatus, status);
+        }
+        query.orderByDesc(Student::getId);
 
-        List<StudentResponse> content = result.stream().map(this::toResponse).toList();
-        return new PageImpl<>(content, pageable, result.getTotalElements());
+        Page<Student> result = studentMapper.selectPage(pageRequest, query);
+        List<StudentResponse> records = result.getRecords().stream().map(this::toResponse).toList();
+
+        Page<StudentResponse> responsePage = new Page<>(result.getCurrent(), result.getSize(), result.getTotal());
+        responsePage.setRecords(records);
+        return responsePage;
     }
 
     @Transactional(readOnly = true)
     public Student getEntityById(Long id) {
-        return studentRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("student not found: " + id));
+        Student student = studentMapper.selectById(id);
+        if (student == null) {
+            throw new ResourceNotFoundException("student not found: " + id);
+        }
+        return student;
     }
 
     private StudentResponse toResponse(Student student) {

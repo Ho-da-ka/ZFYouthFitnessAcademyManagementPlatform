@@ -2,6 +2,17 @@
 
 本项目是 `ZF Youth Fitness Academy Management Platform` 的后端服务，基于 Spring Boot 实现，面向移动端与管理后台提供统一 REST API。
 
+## 当前技术方案
+
+- Java 17
+- Spring Boot 4.0.2
+- Spring Web MVC
+- MyBatis-Plus（ORM 与分页）
+- Spring Security
+- Spring Data Redis
+- MySQL（本地与生产统一）
+- OpenAPI 注解（`@Tag` / `@Operation`）
+
 ## 已实现能力（MVP）
 
 - 学员管理：创建、更新、详情、分页查询
@@ -9,20 +20,7 @@
 - 考勤管理：记录考勤、按学员/课程/日期范围查询
 - 体测管理：录入体测记录、按学员时间线查询
 - 安全基线：Spring Security + RBAC（`ADMIN` / `COACH`）
-- 公共能力：统一响应结构、全局异常处理、参数校验
-- 接口文档注解：控制器级 `@Tag` 与方法级 `@Operation`
-
-## 技术栈
-
-- Java 17
-- Spring Boot 4.0.2
-- Spring Web MVC
-- Spring Data JPA
-- Spring Security
-- Spring Data Redis
-- MySQL 驱动（生产）+ H2（本地默认）
-- OpenAPI Annotations（Swagger）
-- Maven Wrapper
+- 通用能力：统一响应结构、全局异常处理、参数校验
 
 ## 目录结构
 
@@ -32,10 +30,11 @@ src/main/java/com/shuzi/managementplatform
 |   |-- api
 |   |-- exception
 |   `-- model
+|-- config
 |-- domain
 |   |-- entity
 |   |-- enums
-|   |-- repository
+|   |-- mapper
 |   `-- service
 |-- security
 `-- web
@@ -43,36 +42,55 @@ src/main/java/com/shuzi/managementplatform
     `-- dto
 ```
 
-## 快速启动
+## 本地启动（MySQL）
 
-### 1. 环境准备
+### 1. 准备环境
 
-- 安装 JDK 17+
-- 推荐设置 `JAVA_HOME` 到 JDK 17，例如：
+- JDK 17+
+- MySQL 8.x
+- 创建数据库：`management_platform`
 
-```powershell
-$env:JAVA_HOME="C:\Program Files\Java\jdk-17"
-$env:Path="$env:JAVA_HOME\bin;$env:Path"
+```sql
+CREATE DATABASE IF NOT EXISTS management_platform
+  DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_general_ci;
 ```
 
-### 2. 启动项目
+### 2. 修改数据库连接
+
+编辑 `src/main/resources/application.properties`：
+
+- `spring.datasource.url`
+- `spring.datasource.username`
+- `spring.datasource.password`
+
+默认配置为本地 MySQL：
+
+```properties
+spring.datasource.url=jdbc:mysql://localhost:3306/management_platform?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useSSL=false
+spring.datasource.username=root
+spring.datasource.password=123456
+```
+
+### 3. 启动项目
 
 ```powershell
 cd Code/backend-service/ManagementPlatform
 .\mvnw.cmd spring-boot:run
 ```
 
-默认使用 H2 内存数据库，便于本地快速联调。  
-如需切换 MySQL，可使用 `application-mysql.properties` 并按实际账号修改配置。
+说明：
+- 应用启动时会执行 `schema-mysql.sql` 初始化基础表结构（`CREATE TABLE IF NOT EXISTS`）。
+- 不再使用 H2 数据库。
 
-## 认证与角色
+## 认证与角色（开发态）
 
-当前采用开发态内存用户（HTTP Basic）：
+当前使用 HTTP Basic 内存用户：
 
 - `admin / Admin@123`（角色：`ADMIN`）
 - `coach / Coach@123`（角色：`COACH`）
 
-说明：JWT 已预留占位过滤器与提供器，完整登录发 token 流程将在后续变更实现。
+JWT 目前为占位骨架，后续会补完整登录发 token 流程。
 
 ## 核心接口
 
@@ -99,26 +117,24 @@ cd Code/backend-service/ManagementPlatform
 `POST /api/v1/fitness-tests`  
 `GET /api/v1/fitness-tests?studentId=`
 
-## OpenAPI 接口分组说明
+## OpenAPI 分组
 
-当前以控制器 `Tag` 进行分组：
+- `Public`：公共接口
+- `Student`：学员管理
+- `Course`：课程管理
+- `Attendance`：考勤管理
+- `FitnessTest`：体测管理
 
-- `Public`：公共健康检查接口
-- `Student`：学员档案管理接口
-- `Course`：课程与排课基础管理接口
-- `Attendance`：考勤记录接口
-- `FitnessTest`：体能测试记录接口
-
-## 构建与测试
+## 构建命令
 
 ```powershell
-.\mvnw.cmd test
+.\mvnw.cmd -DskipTests compile
 .\mvnw.cmd package
 ```
 
 ## Spec 工作流
 
-本仓库已按 OpenSpec 初始化，当前开发变更位于：
+本仓库 OpenSpec 变更目录：
 
 - `openspec/changes/backend-mvp-core-modules/`
 

@@ -1,51 +1,39 @@
 package com.shuzi.managementplatform.domain.entity;
 
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 import com.shuzi.managementplatform.common.model.BaseEntity;
 import com.shuzi.managementplatform.domain.enums.Gender;
 import com.shuzi.managementplatform.domain.enums.StudentStatus;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
 
 import java.time.LocalDate;
 
-@Entity
-@Table(name = "students")
+@TableName("students")
 public class Student extends BaseEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
-    @Column(nullable = false, unique = true, length = 32)
+    @TableField("student_no")
     private String studentNo;
 
-    @Column(nullable = false, length = 64)
     private String name;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 16)
     private Gender gender;
 
-    @Column(nullable = false)
+    @TableField("birth_date")
     private LocalDate birthDate;
 
-    @Column(length = 64)
+    @TableField("guardian_name")
     private String guardianName;
 
-    @Column(length = 32)
+    @TableField("guardian_phone")
     private String guardianPhone;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 16)
     private StudentStatus status = StudentStatus.ACTIVE;
 
-    @Column(length = 255)
     private String remarks;
 
     public Long getId() {
