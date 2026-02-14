@@ -1,0 +1,449 @@
+﻿{
+  "info": {
+    "_postman_id": "f2b4e9bf-6f7a-4af6-95d0-53a4cd2c9a42",
+    "name": "ZF Youth Fitness Academy Management Platform API",
+    "description": "用于前后端联调的接口集合。格式为 Postman Collection v2.1，Apifox 可直接导入。",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "codex"
+  },
+  "auth": {
+    "type": "basic",
+    "basic": [
+      {
+        "key": "username",
+        "value": "{{adminUsername}}",
+        "type": "string"
+      },
+      {
+        "key": "password",
+        "value": "{{adminPassword}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "adminUsername",
+      "value": "admin"
+    },
+    {
+      "key": "adminPassword",
+      "value": "Admin@123"
+    },
+    {
+      "key": "coachUsername",
+      "value": "coach"
+    },
+    {
+      "key": "coachPassword",
+      "value": "Coach@123"
+    },
+    {
+      "key": "studentId",
+      "value": "1"
+    },
+    {
+      "key": "courseId",
+      "value": "1"
+    }
+  ],
+  "item": [
+    {
+      "name": "Public",
+      "item": [
+        {
+          "name": "Health Check - Ping",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/public/ping",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "public",
+                "ping"
+              ]
+            },
+            "description": "无需鉴权，服务健康检查。"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Students",
+      "item": [
+        {
+          "name": "Create Student (ADMIN)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"studentNo\": \"S2026001\",\n  \"name\": \"张三\",\n  \"gender\": \"MALE\",\n  \"birthDate\": \"2012-06-01\",\n  \"guardianName\": \"张家长\",\n  \"guardianPhone\": \"13800138000\",\n  \"status\": \"ACTIVE\",\n  \"remarks\": \"初始建档\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/students",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "students"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Student (ADMIN)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"张三（更新）\",\n  \"gender\": \"MALE\",\n  \"birthDate\": \"2012-06-01\",\n  \"guardianName\": \"张家长\",\n  \"guardianPhone\": \"13800138000\",\n  \"status\": \"ACTIVE\",\n  \"remarks\": \"更新备注\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/students/{{studentId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "students",
+                "{{studentId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Student Detail",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/students/{{studentId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "students",
+                "{{studentId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List Students (Page)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/students?page=0&size=10&name=&status=ACTIVE",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "students"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "10"
+                },
+                {
+                  "key": "name",
+                  "value": ""
+                },
+                {
+                  "key": "status",
+                  "value": "ACTIVE"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Courses",
+      "item": [
+        {
+          "name": "Create Course (ADMIN)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"courseCode\": \"C2026001\",\n  \"name\": \"青少年体能基础班\",\n  \"courseType\": \"体能训练\",\n  \"coachName\": \"李教练\",\n  \"venue\": \"A馆1号场\",\n  \"startTime\": \"2026-02-20T19:00:00\",\n  \"durationMinutes\": 90,\n  \"status\": \"PLANNED\",\n  \"description\": \"每周二四晚间\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/courses",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "courses"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Course (ADMIN)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"青少年体能基础班（更新）\",\n  \"courseType\": \"体能训练\",\n  \"coachName\": \"李教练\",\n  \"venue\": \"A馆1号场\",\n  \"startTime\": \"2026-02-20T19:00:00\",\n  \"durationMinutes\": 90,\n  \"status\": \"ONGOING\",\n  \"description\": \"课程更新说明\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/courses/{{courseId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "courses",
+                "{{courseId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Course Detail",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/courses/{{courseId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "courses",
+                "{{courseId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List Courses (Page)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/courses?page=0&size=10&name=&status=PLANNED",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "courses"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "10"
+                },
+                {
+                  "key": "name",
+                  "value": ""
+                },
+                {
+                  "key": "status",
+                  "value": "PLANNED"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Attendances",
+      "item": [
+        {
+          "name": "Create Attendance",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"studentId\": {{studentId}},\n  \"courseId\": {{courseId}},\n  \"attendanceDate\": \"2026-02-14\",\n  \"status\": \"PRESENT\",\n  \"note\": \"到课正常\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/attendances",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "attendances"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Search Attendances",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/attendances?studentId={{studentId}}&courseId={{courseId}}&startDate=2026-02-01&endDate=2026-02-28",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "attendances"
+              ],
+              "query": [
+                {
+                  "key": "studentId",
+                  "value": "{{studentId}}"
+                },
+                {
+                  "key": "courseId",
+                  "value": "{{courseId}}"
+                },
+                {
+                  "key": "startDate",
+                  "value": "2026-02-01"
+                },
+                {
+                  "key": "endDate",
+                  "value": "2026-02-28"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Fitness Tests",
+      "item": [
+        {
+          "name": "Create Fitness Test",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"studentId\": {{studentId}},\n  \"testDate\": \"2026-02-14\",\n  \"itemName\": \"50米跑\",\n  \"testValue\": 8.72,\n  \"unit\": \"s\",\n  \"comment\": \"较上月提升\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/fitness-tests",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "fitness-tests"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List Fitness Tests",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/fitness-tests?studentId={{studentId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "fitness-tests"
+              ],
+              "query": [
+                {
+                  "key": "studentId",
+                  "value": "{{studentId}}",
+                  "description": "Optional. Omit this query param to query all records."
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

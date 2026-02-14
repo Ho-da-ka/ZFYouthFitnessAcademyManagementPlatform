@@ -42,11 +42,12 @@ public class FitnessTestService {
 
     @Transactional(readOnly = true)
     public List<FitnessTestResponse> listByStudent(Long studentId) {
-        return fitnessTestRecordMapper.selectList(
-                        Wrappers.<FitnessTestRecord>lambdaQuery()
-                                .eq(FitnessTestRecord::getStudentId, studentId)
-                                .orderByDesc(FitnessTestRecord::getTestDate, FitnessTestRecord::getId)
-                )
+        var query = Wrappers.<FitnessTestRecord>lambdaQuery()
+                .orderByDesc(FitnessTestRecord::getTestDate, FitnessTestRecord::getId);
+        if (studentId != null) {
+            query.eq(FitnessTestRecord::getStudentId, studentId);
+        }
+        return fitnessTestRecordMapper.selectList(query)
                 .stream()
                 .map(this::toResponse)
                 .toList();

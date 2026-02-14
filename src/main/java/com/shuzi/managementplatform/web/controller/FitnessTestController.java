@@ -40,8 +40,8 @@ public class FitnessTestController {
 
     @PreAuthorize("hasAnyRole('ADMIN','COACH')")
     @GetMapping
-    @Operation(summary = "List student fitness tests", description = "Query assessment timeline by student ID")
-    public ApiResponse<List<FitnessTestResponse>> listByStudent(@RequestParam Long studentId) {
+    @Operation(summary = "List fitness tests", description = "Query assessment timeline, optionally filtered by student ID")
+    public ApiResponse<List<FitnessTestResponse>> listByStudent(@RequestParam(required = false) Long studentId) {
         return ApiResponse.ok(fitnessTestService.listByStudent(studentId));
     }
 }

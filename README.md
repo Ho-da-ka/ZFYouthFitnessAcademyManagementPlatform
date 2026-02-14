@@ -115,7 +115,7 @@ JWT 目前为占位骨架，后续会补完整登录发 token 流程。
 
 - 体测管理  
 `POST /api/v1/fitness-tests`  
-`GET /api/v1/fitness-tests?studentId=`
+`GET /api/v1/fitness-tests?studentId=`（`studentId` 可选，不传则返回全部）
 
 ## OpenAPI 分组
 
@@ -137,4 +137,3 @@ JWT 目前为占位骨架，后续会补完整登录发 token 流程。
 本仓库 OpenSpec 变更目录：
 
 - `openspec/changes/backend-mvp-core-modules/`
-
