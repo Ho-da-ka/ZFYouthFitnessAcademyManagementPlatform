@@ -1,4 +1,4 @@
-﻿# ZF 青少年体能培训教务管理平台 后端接口文档
+# ZF 青少年体能培训教务管理平台 后端接口文档
 
 ## 1. 基础信息
 - 接口前缀: `/api/v1`
@@ -49,12 +49,13 @@
 - `401 Unauthorized`: 未认证
 - `403 Forbidden`: 角色权限不足
 - `404 Not Found`: 资源不存在
-- `409 Conflict`: 业务冲突（如编码重复）
+- `409 Conflict`: 业务冲突（如编号重复、资源被引用）
 - `500 Internal Server Error`: 服务内部异常
 
 ## 4. 枚举值
 - `Gender`: `MALE`, `FEMALE`
 - `StudentStatus`: `ACTIVE`, `INACTIVE`
+- `CoachStatus`: `ACTIVE`, `INACTIVE`
 - `CourseStatus`: `PLANNED`, `ONGOING`, `COMPLETED`, `CANCELLED`
 - `AttendanceStatus`: `PRESENT`, `LATE`, `ABSENT`, `LEAVE`
 - `TrainingIntensityLevel`（前端约定值）: `LOW`, `MEDIUM`, `HIGH`
@@ -105,7 +106,6 @@
 - 权限: `ADMIN`
 - 路径参数: `id` 学员ID
 - 请求体: 与创建类似，但 `status` 必填（`studentNo` 不可改）
-- 规则: `guardianPhone` 若填写，需匹配 `^[0-9+\-]{6,20}$`
 
 #### 5.2.3 获取学员详情
 - 方法/路径: `GET /api/v1/students/{id}`
@@ -120,8 +120,74 @@
   - `name` 可选，按姓名模糊查询
   - `status` 可选，`ACTIVE` / `INACTIVE`
 
-### 5.3 课程管理
-#### 5.3.1 创建课程
+### 5.3 教练管理
+#### 5.3.1 创建教练
+- 方法/路径: `POST /api/v1/coaches`
+- 权限: `ADMIN`
+- 请求体:
+```json
+{
+  "coachCode": "T2026001",
+  "name": "李教练",
+  "gender": "MALE",
+  "phone": "13800138001",
+  "specialty": "青少年体能、速度敏捷训练",
+  "status": "ACTIVE",
+  "remarks": "周中晚间排课为主"
+}
+```
+- 规则:
+  - `coachCode`, `name`, `gender` 必填
+  - `coachCode` 与 `name` 均不能重复，重复返回 `409`
+  - `phone` 若填写，需匹配 `^[0-9+\-]{6,20}$`
+  - `status` 不传时默认 `ACTIVE`
+
+#### 5.3.2 更新教练
+- 方法/路径: `PUT /api/v1/coaches/{id}`
+- 权限: `ADMIN`
+- 路径参数: `id` 教练ID
+- 请求体:
+```json
+{
+  "name": "李教练",
+  "gender": "MALE",
+  "phone": "13800138001",
+  "specialty": "体能基础、爆发力训练",
+  "status": "ACTIVE",
+  "remarks": "已完成春季班排课"
+}
+```
+- 规则:
+  - `name`, `gender`, `status` 必填
+  - 若修改了教练姓名，系统会同步更新课程中的 `coachName`
+
+#### 5.3.3 删除教练
+- 方法/路径: `DELETE /api/v1/coaches/{id}`
+- 权限: `ADMIN`
+- 路径参数: `id` 教练ID
+- 规则:
+  - 如果已有课程使用该教练姓名，返回 `409 coach is referenced by courses`
+
+#### 5.3.4 获取教练详情
+- 方法/路径: `GET /api/v1/coaches/{id}`
+- 权限: `ADMIN` / `COACH`
+
+#### 5.3.5 分页查询教练
+- 方法/路径: `GET /api/v1/coaches`
+- 权限: `ADMIN` / `COACH`
+- 查询参数:
+  - `page` 默认 `0`
+  - `size` 默认 `10`
+  - `name` 可选，按姓名模糊查询
+  - `status` 可选，`ACTIVE` / `INACTIVE`
+
+#### 5.3.6 查询可选教练
+- 方法/路径: `GET /api/v1/coaches/options`
+- 权限: `ADMIN` / `COACH`
+- 返回: 当前所有 `ACTIVE` 状态教练，供课程表单、训练表单等选择组件使用
+
+### 5.4 课程管理
+#### 5.4.1 创建课程
 - 方法/路径: `POST /api/v1/courses`
 - 权限: `ADMIN`
 - 请求体:
@@ -143,18 +209,20 @@
   - `courseCode` 不能重复，重复返回 `409`
   - `durationMinutes >= 1`
   - `status` 不传时默认 `PLANNED`
+- 说明:
+  - 建议先在教练管理中维护教练档案，再在课程表单中选择对应 `coachName`
 
-#### 5.3.2 更新课程
+#### 5.4.2 更新课程
 - 方法/路径: `PUT /api/v1/courses/{id}`
 - 权限: `ADMIN`
 - 路径参数: `id` 课程ID
 - 请求体: 与创建类似，但 `status` 必填（`courseCode` 不可改）
 
-#### 5.3.3 获取课程详情
+#### 5.4.3 获取课程详情
 - 方法/路径: `GET /api/v1/courses/{id}`
 - 权限: `ADMIN` / `COACH`
 
-#### 5.3.4 分页查询课程
+#### 5.4.4 分页查询课程
 - 方法/路径: `GET /api/v1/courses`
 - 权限: `ADMIN` / `COACH`
 - 查询参数:
@@ -163,8 +231,8 @@
   - `name` 可选，按课程名模糊查询
   - `status` 可选，`PLANNED` / `ONGOING` / `COMPLETED` / `CANCELLED`
 
-### 5.4 考勤管理
-#### 5.4.1 新增考勤记录
+### 5.5 考勤管理
+#### 5.5.1 新增考勤记录
 - 方法/路径: `POST /api/v1/attendances`
 - 权限: `ADMIN` / `COACH`
 - 请求体:
@@ -181,7 +249,7 @@
   - `studentId`, `courseId`, `attendanceDate`, `status` 必填
   - `studentId` / `courseId` 对应资源不存在会返回 `404`
 
-#### 5.4.2 查询考勤记录
+#### 5.5.2 查询考勤记录
 - 方法/路径: `GET /api/v1/attendances`
 - 权限: `ADMIN` / `COACH`
 - 查询参数（均可选）:
@@ -191,8 +259,8 @@
   - `endDate`
 - 返回: `List<AttendanceResponse>`（按 `attendanceDate`、`id` 倒序）
 
-### 5.5 体测管理
-#### 5.5.1 新增体测记录
+### 5.6 体测管理
+#### 5.6.1 新增体测记录
 - 方法/路径: `POST /api/v1/fitness-tests`
 - 权限: `ADMIN` / `COACH`
 - 请求体:
@@ -211,15 +279,15 @@
   - `testValue > 0`
   - `studentId` 不存在返回 `404`
 
-#### 5.5.2 查询体测记录
+#### 5.6.2 查询体测记录
 - 方法/路径: `GET /api/v1/fitness-tests`
 - 权限: `ADMIN` / `COACH`
 - 查询参数（可选）:
   - `studentId`：按学员筛选；不传时返回全量体测记录
 - 返回: `List<FitnessTestResponse>`（按 `testDate`、`id` 倒序）
 
-### 5.6 训练记录管理
-#### 5.6.1 新增训练记录
+### 5.7 训练记录管理
+#### 5.7.1 新增训练记录
 - 方法/路径: `POST /api/v1/training-records`
 - 权限: `ADMIN` / `COACH`
 - 请求体:
@@ -243,17 +311,17 @@
   - `performanceSummary`, `coachComment` 最大长度 255
   - `studentId` / `courseId` 对应资源不存在会返回 `404`
 
-#### 5.6.2 更新训练记录
+#### 5.7.2 更新训练记录
 - 方法/路径: `PUT /api/v1/training-records/{id}`
 - 权限: `ADMIN` / `COACH`
 - 路径参数: `id` 训练记录ID
 - 请求体: 与创建相同
 
-#### 5.6.3 获取训练记录详情
+#### 5.7.3 获取训练记录详情
 - 方法/路径: `GET /api/v1/training-records/{id}`
 - 权限: `ADMIN` / `COACH`
 
-#### 5.6.4 查询训练记录
+#### 5.7.4 查询训练记录
 - 方法/路径: `GET /api/v1/training-records`
 - 权限: `ADMIN` / `COACH`
 - 查询参数（均可选）:
@@ -267,14 +335,17 @@
 ### 6.1 StudentResponse
 `id`, `studentNo`, `name`, `gender`, `birthDate`, `guardianName`, `guardianPhone`, `status`, `remarks`, `createdAt`, `updatedAt`
 
-### 6.2 CourseResponse
+### 6.2 CoachResponse
+`id`, `coachCode`, `name`, `gender`, `phone`, `specialty`, `status`, `remarks`, `createdAt`, `updatedAt`
+
+### 6.3 CourseResponse
 `id`, `courseCode`, `name`, `courseType`, `coachName`, `venue`, `startTime`, `durationMinutes`, `status`, `description`, `createdAt`, `updatedAt`
 
-### 6.3 AttendanceResponse
+### 6.4 AttendanceResponse
 `id`, `studentId`, `studentName`, `courseId`, `courseName`, `attendanceDate`, `status`, `note`, `createdAt`, `updatedAt`
 
-### 6.4 FitnessTestResponse
+### 6.5 FitnessTestResponse
 `id`, `studentId`, `studentName`, `testDate`, `itemName`, `testValue`, `unit`, `comment`, `createdAt`, `updatedAt`
 
-### 6.5 TrainingRecordResponse
+### 6.6 TrainingRecordResponse
 `id`, `studentId`, `studentName`, `courseId`, `courseName`, `trainingDate`, `trainingContent`, `durationMinutes`, `intensityLevel`, `performanceSummary`, `coachComment`, `createdAt`, `updatedAt`

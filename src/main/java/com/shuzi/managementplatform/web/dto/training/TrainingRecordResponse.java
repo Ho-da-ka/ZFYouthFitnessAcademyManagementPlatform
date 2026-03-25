@@ -1,4 +1,4 @@
-﻿package com.shuzi.managementplatform.web.dto.training;
+package com.shuzi.managementplatform.web.dto.training;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;

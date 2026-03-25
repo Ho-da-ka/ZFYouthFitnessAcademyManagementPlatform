@@ -1,4 +1,4 @@
-﻿package com.shuzi.managementplatform.domain.service;
+package com.shuzi.managementplatform.domain.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;

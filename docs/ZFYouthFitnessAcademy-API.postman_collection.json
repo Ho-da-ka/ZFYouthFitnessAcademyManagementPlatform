@@ -1,4 +1,4 @@
-﻿{
+{
   "info": {
     "_postman_id": "f2b4e9bf-6f7a-4af6-95d0-53a4cd2c9a42",
     "name": "ZF Youth Fitness Academy Management Platform API",
@@ -52,6 +52,10 @@
     },
     {
       "key": "trainingRecordId",
+      "value": "1"
+    },
+    {
+      "key": "coachId",
       "value": "1"
     }
   ],
@@ -313,6 +317,165 @@
                   "key": "status",
                   "value": "PLANNED"
                 }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Coaches",
+      "item": [
+        {
+          "name": "Create Coach (ADMIN)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"coachCode\": \"T2026001\",\n  \"name\": \"???\",\n  \"gender\": \"MALE\",\n  \"phone\": \"13800138001\",\n  \"specialty\": \"????????????\",\n  \"status\": \"ACTIVE\",\n  \"remarks\": \"????????\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/coaches",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "coaches"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Coach (ADMIN)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"???\",\n  \"gender\": \"MALE\",\n  \"phone\": \"13800138001\",\n  \"specialty\": \"??????????\",\n  \"status\": \"ACTIVE\",\n  \"remarks\": \"????????\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/coaches/{{coachId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "coaches",
+                "{{coachId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Coach (ADMIN)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/coaches/{{coachId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "coaches",
+                "{{coachId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Coach Detail",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/coaches/{{coachId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "coaches",
+                "{{coachId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List Coaches (Page)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/coaches?page=0&size=10&name=&status=ACTIVE",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "coaches"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "10"
+                },
+                {
+                  "key": "name",
+                  "value": ""
+                },
+                {
+                  "key": "status",
+                  "value": "ACTIVE"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List Active Coach Options",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/coaches/options",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "coaches",
+                "options"
               ]
             }
           },

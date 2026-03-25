@@ -34,8 +34,9 @@ public class SecurityConfig {
                         // Public endpoints
                         .requestMatchers("/api/v1/public/**", "/error").permitAll()
                         // Admin-only management operations
-                        .requestMatchers(HttpMethod.POST, "/api/v1/students/**", "/api/v1/courses/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/api/v1/students/**", "/api/v1/courses/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/v1/students/**", "/api/v1/courses/**", "/api/v1/coaches/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/v1/students/**", "/api/v1/courses/**", "/api/v1/coaches/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/coaches/**").hasRole("ADMIN")
                         // Coach and admin domain operations
                         .requestMatchers("/api/v1/attendances/**", "/api/v1/fitness-tests/**").hasAnyRole("ADMIN", "COACH")
                         .requestMatchers("/api/v1/**").authenticated()

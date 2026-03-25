@@ -1,4 +1,4 @@
-﻿package com.shuzi.managementplatform.web.dto.training;
+package com.shuzi.managementplatform.web.dto.training;
 
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;

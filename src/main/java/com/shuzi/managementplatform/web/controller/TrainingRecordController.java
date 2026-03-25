@@ -1,4 +1,4 @@
-﻿package com.shuzi.managementplatform.web.controller;
+package com.shuzi.managementplatform.web.controller;
 
 import com.shuzi.managementplatform.common.api.ApiResponse;
 import com.shuzi.managementplatform.domain.service.TrainingRecordService;
