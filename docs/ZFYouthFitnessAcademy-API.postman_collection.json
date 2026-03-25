@@ -49,6 +49,10 @@
     {
       "key": "courseId",
       "value": "1"
+    },
+    {
+      "key": "trainingRecordId",
+      "value": "1"
     }
   ],
   "item": [
@@ -212,7 +216,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"courseCode\": \"C2026001\",\n  \"name\": \"青少年体能基础班\",\n  \"courseType\": \"体能训练\",\n  \"coachName\": \"李教练\",\n  \"venue\": \"A馆1号场\",\n  \"startTime\": \"2026-02-20T19:00:00\",\n  \"durationMinutes\": 90,\n  \"status\": \"PLANNED\",\n  \"description\": \"每周二四晚间\"\n}"
+              "raw": "{\n  \"courseCode\": \"C2026001\",\n  \"name\": \"青少年体能基础班\",\n  \"courseType\": \"体能训练\",\n  \"coachName\": \"李教练\",\n  \"venue\": \"A馆1号场\",\n  \"startTime\": \"2026-03-25T19:00:00\",\n  \"durationMinutes\": 90,\n  \"status\": \"PLANNED\",\n  \"description\": \"每周二四晚间\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/v1/courses",
@@ -240,7 +244,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"青少年体能基础班（更新）\",\n  \"courseType\": \"体能训练\",\n  \"coachName\": \"李教练\",\n  \"venue\": \"A馆1号场\",\n  \"startTime\": \"2026-02-20T19:00:00\",\n  \"durationMinutes\": 90,\n  \"status\": \"ONGOING\",\n  \"description\": \"课程更新说明\"\n}"
+              "raw": "{\n  \"name\": \"青少年体能基础班（更新）\",\n  \"courseType\": \"体能训练\",\n  \"coachName\": \"李教练\",\n  \"venue\": \"A馆1号场\",\n  \"startTime\": \"2026-03-25T19:00:00\",\n  \"durationMinutes\": 90,\n  \"status\": \"ONGOING\",\n  \"description\": \"课程更新说明\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/v1/courses/{{courseId}}",
@@ -331,7 +335,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"studentId\": {{studentId}},\n  \"courseId\": {{courseId}},\n  \"attendanceDate\": \"2026-02-14\",\n  \"status\": \"PRESENT\",\n  \"note\": \"到课正常\"\n}"
+              "raw": "{\n  \"studentId\": {{studentId}},\n  \"courseId\": {{courseId}},\n  \"attendanceDate\": \"2026-03-25\",\n  \"status\": \"PRESENT\",\n  \"note\": \"到课正常\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/v1/attendances",
@@ -353,7 +357,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/attendances?studentId={{studentId}}&courseId={{courseId}}&startDate=2026-02-01&endDate=2026-02-28",
+              "raw": "{{baseUrl}}/api/v1/attendances?studentId={{studentId}}&courseId={{courseId}}&startDate=2026-03-01&endDate=2026-03-31",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -373,11 +377,11 @@
                 },
                 {
                   "key": "startDate",
-                  "value": "2026-02-01"
+                  "value": "2026-03-01"
                 },
                 {
                   "key": "endDate",
-                  "value": "2026-02-28"
+                  "value": "2026-03-31"
                 }
               ]
             }
@@ -401,7 +405,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"studentId\": {{studentId}},\n  \"testDate\": \"2026-02-14\",\n  \"itemName\": \"50米跑\",\n  \"testValue\": 8.72,\n  \"unit\": \"s\",\n  \"comment\": \"较上月提升\"\n}"
+              "raw": "{\n  \"studentId\": {{studentId}},\n  \"testDate\": \"2026-03-25\",\n  \"itemName\": \"50米跑\",\n  \"testValue\": 8.72,\n  \"unit\": \"s\",\n  \"comment\": \"较上月提升\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/v1/fitness-tests",
@@ -437,6 +441,125 @@
                   "key": "studentId",
                   "value": "{{studentId}}",
                   "description": "Optional. Omit this query param to query all records."
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Training Records",
+      "item": [
+        {
+          "name": "Create Training Record",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"studentId\": {{studentId}},\n  \"courseId\": {{courseId}},\n  \"trainingDate\": \"2026-03-25\",\n  \"trainingContent\": \"热身跑、敏捷梯训练、核心力量训练\",\n  \"durationMinutes\": 60,\n  \"intensityLevel\": \"MEDIUM\",\n  \"performanceSummary\": \"动作完成度较稳定，核心控制提升\",\n  \"coachComment\": \"下次重点加强下肢爆发力训练\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/training-records",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "training-records"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Training Record",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"studentId\": {{studentId}},\n  \"courseId\": {{courseId}},\n  \"trainingDate\": \"2026-03-25\",\n  \"trainingContent\": \"热身跑、折返跑、核心力量训练\",\n  \"durationMinutes\": 75,\n  \"intensityLevel\": \"HIGH\",\n  \"performanceSummary\": \"下肢启动速度有所提升\",\n  \"coachComment\": \"继续保持，注意训练后拉伸\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/training-records/{{trainingRecordId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "training-records",
+                "{{trainingRecordId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Training Record Detail",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/training-records/{{trainingRecordId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "training-records",
+                "{{trainingRecordId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Search Training Records",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/training-records?studentId={{studentId}}&courseId={{courseId}}&startDate=2026-03-01&endDate=2026-03-31",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "training-records"
+              ],
+              "query": [
+                {
+                  "key": "studentId",
+                  "value": "{{studentId}}"
+                },
+                {
+                  "key": "courseId",
+                  "value": "{{courseId}}"
+                },
+                {
+                  "key": "startDate",
+                  "value": "2026-03-01"
+                },
+                {
+                  "key": "endDate",
+                  "value": "2026-03-31"
                 }
               ]
             }

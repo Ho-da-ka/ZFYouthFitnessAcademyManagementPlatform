@@ -5,8 +5,8 @@
 - 本地地址: `http://localhost:8080`
 - 数据格式: `application/json`
 - 日期格式:
-  - `LocalDate`: `yyyy-MM-dd`，示例 `2026-02-14`
-  - `LocalDateTime`: ISO-8601，示例 `2026-02-14T10:30:00`
+  - `LocalDate`: `yyyy-MM-dd`，示例 `2026-03-25`
+  - `LocalDateTime`: ISO-8601，示例 `2026-03-25T10:30:00`
 
 ## 2. 鉴权与权限
 - 公开接口: `/api/v1/public/**`
@@ -57,6 +57,7 @@
 - `StudentStatus`: `ACTIVE`, `INACTIVE`
 - `CourseStatus`: `PLANNED`, `ONGOING`, `COMPLETED`, `CANCELLED`
 - `AttendanceStatus`: `PRESENT`, `LATE`, `ABSENT`, `LEAVE`
+- `TrainingIntensityLevel`（前端约定值）: `LOW`, `MEDIUM`, `HIGH`
 
 ## 5. 接口清单
 
@@ -70,7 +71,7 @@
   "message": "OK",
   "data": {
     "service": "management-platform",
-    "time": "2026-02-14T10:30:00",
+    "time": "2026-03-25T10:30:00",
     "status": "UP"
   }
 }
@@ -96,7 +97,7 @@
 - 规则:
   - `studentNo`, `name`, `gender`, `birthDate` 必填
   - `studentNo` 不能重复，重复返回 `409`
-  - `guardianPhone` 若填写，需匹配 `^[0-9+\\-]{6,20}$`
+  - `guardianPhone` 若填写，需匹配 `^[0-9+\-]{6,20}$`
   - `status` 不传时默认 `ACTIVE`
 
 #### 5.2.2 更新学员
@@ -104,7 +105,7 @@
 - 权限: `ADMIN`
 - 路径参数: `id` 学员ID
 - 请求体: 与创建类似，但 `status` 必填（`studentNo` 不可改）
-- 规则: `guardianPhone` 若填写，需匹配 `^[0-9+\\-]{6,20}$`
+- 规则: `guardianPhone` 若填写，需匹配 `^[0-9+\-]{6,20}$`
 
 #### 5.2.3 获取学员详情
 - 方法/路径: `GET /api/v1/students/{id}`
@@ -131,7 +132,7 @@
   "courseType": "体能训练",
   "coachName": "李教练",
   "venue": "A馆1号场",
-  "startTime": "2026-02-20T19:00:00",
+  "startTime": "2026-03-25T19:00:00",
   "durationMinutes": 90,
   "status": "PLANNED",
   "description": "每周二四晚间"
@@ -171,7 +172,7 @@
 {
   "studentId": 1,
   "courseId": 1,
-  "attendanceDate": "2026-02-14",
+  "attendanceDate": "2026-03-25",
   "status": "PRESENT",
   "note": "到课正常"
 }
@@ -198,7 +199,7 @@
 ```json
 {
   "studentId": 1,
-  "testDate": "2026-02-14",
+  "testDate": "2026-03-25",
   "itemName": "50米跑",
   "testValue": 8.72,
   "unit": "s",
@@ -217,6 +218,51 @@
   - `studentId`：按学员筛选；不传时返回全量体测记录
 - 返回: `List<FitnessTestResponse>`（按 `testDate`、`id` 倒序）
 
+### 5.6 训练记录管理
+#### 5.6.1 新增训练记录
+- 方法/路径: `POST /api/v1/training-records`
+- 权限: `ADMIN` / `COACH`
+- 请求体:
+```json
+{
+  "studentId": 1,
+  "courseId": 1,
+  "trainingDate": "2026-03-25",
+  "trainingContent": "热身跑、敏捷梯训练、核心力量训练",
+  "durationMinutes": 60,
+  "intensityLevel": "MEDIUM",
+  "performanceSummary": "动作完成度较稳定，核心控制提升",
+  "coachComment": "下次重点加强下肢爆发力训练"
+}
+```
+- 规则:
+  - `studentId`, `courseId`, `trainingDate`, `trainingContent`, `durationMinutes` 必填
+  - `trainingContent` 最大长度 255
+  - `durationMinutes >= 1`
+  - `intensityLevel` 最大长度 32
+  - `performanceSummary`, `coachComment` 最大长度 255
+  - `studentId` / `courseId` 对应资源不存在会返回 `404`
+
+#### 5.6.2 更新训练记录
+- 方法/路径: `PUT /api/v1/training-records/{id}`
+- 权限: `ADMIN` / `COACH`
+- 路径参数: `id` 训练记录ID
+- 请求体: 与创建相同
+
+#### 5.6.3 获取训练记录详情
+- 方法/路径: `GET /api/v1/training-records/{id}`
+- 权限: `ADMIN` / `COACH`
+
+#### 5.6.4 查询训练记录
+- 方法/路径: `GET /api/v1/training-records`
+- 权限: `ADMIN` / `COACH`
+- 查询参数（均可选）:
+  - `studentId`
+  - `courseId`
+  - `startDate`
+  - `endDate`
+- 返回: `List<TrainingRecordResponse>`（按 `trainingDate`、`id` 倒序）
+
 ## 6. 响应对象字段摘要
 ### 6.1 StudentResponse
 `id`, `studentNo`, `name`, `gender`, `birthDate`, `guardianName`, `guardianPhone`, `status`, `remarks`, `createdAt`, `updatedAt`
@@ -229,3 +275,6 @@
 
 ### 6.4 FitnessTestResponse
 `id`, `studentId`, `studentName`, `testDate`, `itemName`, `testValue`, `unit`, `comment`, `createdAt`, `updatedAt`
+
+### 6.5 TrainingRecordResponse
+`id`, `studentId`, `studentName`, `courseId`, `courseName`, `trainingDate`, `trainingContent`, `durationMinutes`, `intensityLevel`, `performanceSummary`, `coachComment`, `createdAt`, `updatedAt`

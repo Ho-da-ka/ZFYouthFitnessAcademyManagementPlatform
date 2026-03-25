@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS students (
+﻿CREATE TABLE IF NOT EXISTS students (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     student_no VARCHAR(32) NOT NULL,
     name VARCHAR(64) NOT NULL,
@@ -56,4 +56,22 @@ CREATE TABLE IF NOT EXISTS fitness_test_records (
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     KEY idx_fitness_student_date (student_id, test_date),
     CONSTRAINT fk_fitness_student FOREIGN KEY (student_id) REFERENCES students(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS training_records (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    student_id BIGINT NOT NULL,
+    course_id BIGINT NOT NULL,
+    training_date DATE NOT NULL,
+    training_content VARCHAR(255) NOT NULL,
+    duration_minutes INT NOT NULL,
+    intensity_level VARCHAR(32) NULL,
+    performance_summary VARCHAR(255) NULL,
+    coach_comment VARCHAR(255) NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    KEY idx_training_student_date (student_id, training_date),
+    KEY idx_training_course_date (course_id, training_date),
+    CONSTRAINT fk_training_student FOREIGN KEY (student_id) REFERENCES students(id),
+    CONSTRAINT fk_training_course FOREIGN KEY (course_id) REFERENCES courses(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
