@@ -76,11 +76,16 @@ cd Code/backend-service/ManagementPlatform
 - 当前不再使用 H2，开发和本地联调统一使用 MySQL。
 
 ## 认证与角色（开发态）
-当前使用 HTTP Basic 内存用户：
+当前已切换为 JWT Bearer 认证，提供以下接口：
+- `POST /api/v1/auth/login`
+- `POST /api/v1/auth/refresh`
+- `POST /api/v1/auth/logout`
+
+默认内存用户：
 - `admin / Admin@123`（角色：`ADMIN`）
 - `coach / Coach@123`（角色：`COACH`）
-
-JWT 当前仍为占位骨架，后续用于家长端与移动端双角色认证演进。
+- `student / Student@123`（角色：`STUDENT`）
+- `parent / Parent@123`（角色：`PARENT`）
 
 ## 核心接口
 - 健康检查：`GET /api/v1/public/ping`
