@@ -111,3 +111,63 @@ CREATE TABLE IF NOT EXISTS training_records (
     CONSTRAINT fk_training_student FOREIGN KEY (student_id) REFERENCES students(id),
     CONSTRAINT fk_training_course FOREIGN KEY (course_id) REFERENCES courses(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS parent_accounts (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    user_account_id BIGINT NOT NULL,
+    display_name VARCHAR(64) NULL,
+    phone VARCHAR(32) NULL,
+    status VARCHAR(16) NOT NULL DEFAULT 'ACTIVE',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY uk_parent_accounts_user_account_id (user_account_id),
+    KEY idx_parent_accounts_phone (phone),
+    CONSTRAINT fk_parent_accounts_user_account FOREIGN KEY (user_account_id) REFERENCES user_accounts(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS parent_student_relations (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    parent_account_id BIGINT NOT NULL,
+    student_id BIGINT NOT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY uk_parent_student_relation (parent_account_id, student_id),
+    KEY idx_parent_student_student (student_id),
+    CONSTRAINT fk_parent_student_relation_parent FOREIGN KEY (parent_account_id) REFERENCES parent_accounts(id),
+    CONSTRAINT fk_parent_student_relation_student FOREIGN KEY (student_id) REFERENCES students(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS course_bookings (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    parent_account_id BIGINT NOT NULL,
+    student_id BIGINT NOT NULL,
+    course_id BIGINT NOT NULL,
+    booking_status VARCHAR(16) NOT NULL DEFAULT 'BOOKED',
+    course_capacity INT NOT NULL DEFAULT 20,
+    booking_remark VARCHAR(255) NULL,
+    checkin_status VARCHAR(16) NOT NULL DEFAULT 'PENDING',
+    checkin_time DATETIME NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    KEY idx_course_bookings_parent (parent_account_id),
+    KEY idx_course_bookings_course_status (course_id, booking_status),
+    KEY idx_course_bookings_student (student_id),
+    CONSTRAINT fk_course_bookings_parent FOREIGN KEY (parent_account_id) REFERENCES parent_accounts(id),
+    CONSTRAINT fk_course_bookings_student FOREIGN KEY (student_id) REFERENCES students(id),
+    CONSTRAINT fk_course_bookings_course FOREIGN KEY (course_id) REFERENCES courses(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS in_app_messages (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    parent_account_id BIGINT NOT NULL,
+    title VARCHAR(100) NOT NULL,
+    content VARCHAR(500) NOT NULL,
+    msg_type VARCHAR(32) NOT NULL,
+    is_read TINYINT(1) NOT NULL DEFAULT 0,
+    read_at DATETIME NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    KEY idx_in_app_messages_parent (parent_account_id),
+    KEY idx_in_app_messages_read (is_read),
+    CONSTRAINT fk_in_app_messages_parent FOREIGN KEY (parent_account_id) REFERENCES parent_accounts(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
