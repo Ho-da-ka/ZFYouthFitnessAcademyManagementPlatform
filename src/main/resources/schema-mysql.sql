@@ -27,6 +27,25 @@ CREATE TABLE IF NOT EXISTS students (
     UNIQUE KEY uk_students_student_no (student_no)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+CREATE TABLE IF NOT EXISTS user_accounts (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    username VARCHAR(64) NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    role VARCHAR(16) NOT NULL,
+    status VARCHAR(16) NOT NULL DEFAULT 'ACTIVE',
+    coach_id BIGINT NULL,
+    student_id BIGINT NULL,
+    last_login_at DATETIME NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY uk_user_accounts_username (username),
+    UNIQUE KEY uk_user_accounts_coach_id (coach_id),
+    UNIQUE KEY uk_user_accounts_student_id (student_id),
+    KEY idx_user_accounts_role (role),
+    CONSTRAINT fk_user_accounts_coach FOREIGN KEY (coach_id) REFERENCES coaches(id),
+    CONSTRAINT fk_user_accounts_student FOREIGN KEY (student_id) REFERENCES students(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 CREATE TABLE IF NOT EXISTS courses (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     course_code VARCHAR(32) NOT NULL,
@@ -60,15 +79,18 @@ CREATE TABLE IF NOT EXISTS attendance_records (
 
 CREATE TABLE IF NOT EXISTS fitness_test_records (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    student_id BIGINT NOT NULL,
+    student_id BIGINT NULL,
+    student_name_snapshot VARCHAR(64) NULL,
     test_date DATE NOT NULL,
     item_name VARCHAR(100) NOT NULL,
     test_value DECIMAL(10,2) NOT NULL,
     unit VARCHAR(32) NOT NULL,
     comment VARCHAR(255) NULL,
+    deleted TINYINT(1) NOT NULL DEFAULT 0,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     KEY idx_fitness_student_date (student_id, test_date),
+    KEY idx_fitness_deleted (deleted),
     CONSTRAINT fk_fitness_student FOREIGN KEY (student_id) REFERENCES students(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 

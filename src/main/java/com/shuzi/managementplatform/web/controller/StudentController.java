@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -46,6 +47,14 @@ public class StudentController {
     @Operation(summary = "Update student", description = "Update student profile by ID")
     public ApiResponse<StudentResponse> update(@PathVariable Long id, @Valid @RequestBody StudentUpdateRequest request) {
         return ApiResponse.ok("student updated", studentService.update(id, request));
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @DeleteMapping("/{id}")
+    @Operation(summary = "Delete student", description = "Delete student profile by ID when it is not referenced by business records")
+    public ApiResponse<Void> delete(@PathVariable Long id) {
+        studentService.delete(id);
+        return ApiResponse.ok("student deleted", null);
     }
 
     @PreAuthorize("hasAnyRole('ADMIN','COACH')")

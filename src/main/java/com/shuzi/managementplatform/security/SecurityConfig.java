@@ -8,12 +8,8 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
@@ -46,7 +42,7 @@ public class SecurityConfig {
                         // Admin-only management operations
                         .requestMatchers(HttpMethod.POST, "/api/v1/students/**", "/api/v1/courses/**", "/api/v1/coaches/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/v1/students/**", "/api/v1/courses/**", "/api/v1/coaches/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/api/v1/coaches/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/students/**", "/api/v1/coaches/**").hasRole("ADMIN")
                         // Admin and coach query operations
                         .requestMatchers(HttpMethod.GET, "/api/v1/students/**", "/api/v1/courses/**", "/api/v1/coaches/**")
                         .hasAnyRole("ADMIN", "COACH")
@@ -60,27 +56,6 @@ public class SecurityConfig {
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
-    }
-
-    @Bean
-    public UserDetailsService userDetailsService(PasswordEncoder passwordEncoder) {
-        UserDetails admin = User.withUsername("admin")
-                .password(passwordEncoder.encode("Admin@123"))
-                .roles("ADMIN")
-                .build();
-        UserDetails coach = User.withUsername("coach")
-                .password(passwordEncoder.encode("Coach@123"))
-                .roles("COACH")
-                .build();
-        UserDetails student = User.withUsername("student")
-                .password(passwordEncoder.encode("Student@123"))
-                .roles("STUDENT")
-                .build();
-        UserDetails parent = User.withUsername("parent")
-                .password(passwordEncoder.encode("Parent@123"))
-                .roles("PARENT")
-                .build();
-        return new InMemoryUserDetailsManager(admin, coach, student, parent);
     }
 
     @Bean

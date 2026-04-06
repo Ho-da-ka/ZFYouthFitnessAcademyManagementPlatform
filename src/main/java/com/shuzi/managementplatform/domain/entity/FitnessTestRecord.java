@@ -3,6 +3,7 @@ package com.shuzi.managementplatform.domain.entity;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.shuzi.managementplatform.common.model.BaseEntity;
 
@@ -21,6 +22,9 @@ public class FitnessTestRecord extends BaseEntity {
     @TableField("student_id")
     private Long studentId;
 
+    @TableField("student_name_snapshot")
+    private String studentNameSnapshot;
+
     @TableField("test_date")
     private LocalDate testDate;
 
@@ -33,6 +37,10 @@ public class FitnessTestRecord extends BaseEntity {
     private String unit;
 
     private String comment;
+
+    @TableField("deleted")
+    @TableLogic(value = "0", delval = "1")
+    private Integer deleted;
 
     public Long getId() {
         return id;
@@ -84,5 +92,21 @@ public class FitnessTestRecord extends BaseEntity {
 
     public void setComment(String comment) {
         this.comment = comment;
+    }
+
+    public String getStudentNameSnapshot() {
+        return studentNameSnapshot;
+    }
+
+    public void setStudentNameSnapshot(String studentNameSnapshot) {
+        this.studentNameSnapshot = studentNameSnapshot;
+    }
+
+    public Integer getDeleted() {
+        return deleted;
+    }
+
+    public void setDeleted(Integer deleted) {
+        this.deleted = deleted;
     }
 }

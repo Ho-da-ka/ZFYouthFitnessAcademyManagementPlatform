@@ -30,10 +30,12 @@ public class CoachService {
 
     private final CoachMapper coachMapper;
     private final CourseMapper courseMapper;
+    private final UserAccountService userAccountService;
 
-    public CoachService(CoachMapper coachMapper, CourseMapper courseMapper) {
+    public CoachService(CoachMapper coachMapper, CourseMapper courseMapper, UserAccountService userAccountService) {
         this.coachMapper = coachMapper;
         this.courseMapper = courseMapper;
+        this.userAccountService = userAccountService;
     }
 
     @Transactional
@@ -45,6 +47,7 @@ public class CoachService {
         coach.setCoachCode(request.coachCode().trim());
         apply(coach, request.name(), request.gender(), request.phone(), request.specialty(), request.status(), request.remarks());
         coachMapper.insert(coach);
+        userAccountService.upsertCoachAccount(coach);
         return toResponse(coach);
     }
 
@@ -60,6 +63,7 @@ public class CoachService {
 
         apply(coach, request.name(), request.gender(), request.phone(), request.specialty(), request.status(), request.remarks());
         coachMapper.updateById(coach);
+        userAccountService.upsertCoachAccount(coach);
 
         if (!oldName.equals(coach.getName())) {
             syncCourseCoachName(oldName, coach.getName());
@@ -81,6 +85,7 @@ public class CoachService {
             throw new BusinessException(HttpStatus.CONFLICT, "coach is referenced by courses");
         }
 
+        userAccountService.deleteByCoachId(id);
         coachMapper.deleteById(id);
     }
 

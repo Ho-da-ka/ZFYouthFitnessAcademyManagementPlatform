@@ -2,6 +2,7 @@ package com.shuzi.managementplatform.domain.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.shuzi.managementplatform.common.exception.ResourceNotFoundException;
 import com.shuzi.managementplatform.domain.entity.AttendanceRecord;
 import com.shuzi.managementplatform.domain.entity.Course;
 import com.shuzi.managementplatform.domain.entity.Student;
@@ -47,6 +48,15 @@ public class AttendanceService {
         record.setNote(request.note());
         attendanceRecordMapper.insert(record);
         return toResponse(record, student, course);
+    }
+
+    @Transactional
+    public void delete(Long id) {
+        AttendanceRecord record = attendanceRecordMapper.selectById(id);
+        if (record == null) {
+            throw new ResourceNotFoundException("attendance record not found: " + id);
+        }
+        attendanceRecordMapper.deleteById(id);
     }
 
     @Transactional(readOnly = true)

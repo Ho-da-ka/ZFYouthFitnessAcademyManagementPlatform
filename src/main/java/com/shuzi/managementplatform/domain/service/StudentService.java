@@ -6,9 +6,15 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.shuzi.managementplatform.common.exception.BusinessException;
 import com.shuzi.managementplatform.common.exception.ResourceNotFoundException;
+import com.shuzi.managementplatform.domain.entity.AttendanceRecord;
+import com.shuzi.managementplatform.domain.entity.FitnessTestRecord;
 import com.shuzi.managementplatform.domain.entity.Student;
+import com.shuzi.managementplatform.domain.entity.TrainingRecord;
 import com.shuzi.managementplatform.domain.enums.StudentStatus;
+import com.shuzi.managementplatform.domain.mapper.AttendanceRecordMapper;
+import com.shuzi.managementplatform.domain.mapper.FitnessTestRecordMapper;
 import com.shuzi.managementplatform.domain.mapper.StudentMapper;
+import com.shuzi.managementplatform.domain.mapper.TrainingRecordMapper;
 import com.shuzi.managementplatform.web.dto.student.StudentCreateRequest;
 import com.shuzi.managementplatform.web.dto.student.StudentResponse;
 import com.shuzi.managementplatform.web.dto.student.StudentUpdateRequest;
@@ -26,9 +32,23 @@ import java.util.List;
 public class StudentService {
 
     private final StudentMapper studentMapper;
+    private final AttendanceRecordMapper attendanceRecordMapper;
+    private final FitnessTestRecordMapper fitnessTestRecordMapper;
+    private final TrainingRecordMapper trainingRecordMapper;
+    private final UserAccountService userAccountService;
 
-    public StudentService(StudentMapper studentMapper) {
+    public StudentService(
+            StudentMapper studentMapper,
+            AttendanceRecordMapper attendanceRecordMapper,
+            FitnessTestRecordMapper fitnessTestRecordMapper,
+            TrainingRecordMapper trainingRecordMapper,
+            UserAccountService userAccountService
+    ) {
         this.studentMapper = studentMapper;
+        this.attendanceRecordMapper = attendanceRecordMapper;
+        this.fitnessTestRecordMapper = fitnessTestRecordMapper;
+        this.trainingRecordMapper = trainingRecordMapper;
+        this.userAccountService = userAccountService;
     }
 
     @Transactional
@@ -50,6 +70,7 @@ public class StudentService {
         student.setStatus(request.status() == null ? StudentStatus.ACTIVE : request.status());
         student.setRemarks(request.remarks());
         studentMapper.insert(student);
+        userAccountService.upsertStudentAccount(student);
         return toResponse(student);
     }
 
@@ -67,6 +88,7 @@ public class StudentService {
         student.setStatus(request.status());
         student.setRemarks(request.remarks());
         studentMapper.updateById(student);
+        userAccountService.upsertStudentAccount(student);
         return toResponse(student);
     }
 
@@ -77,6 +99,43 @@ public class StudentService {
             throw new ResourceNotFoundException("student not found: " + id);
         }
         return toResponse(student);
+    }
+
+    @Transactional
+    public void delete(Long id) {
+        Student student = studentMapper.selectById(id);
+        if (student == null) {
+            throw new ResourceNotFoundException("student not found: " + id);
+        }
+
+        Long attendanceCount = attendanceRecordMapper.selectCount(
+                Wrappers.<AttendanceRecord>lambdaQuery()
+                        .eq(AttendanceRecord::getStudentId, id)
+        );
+        if (attendanceCount != null && attendanceCount > 0) {
+            throw new BusinessException(HttpStatus.CONFLICT, "该学员存在考勤记录，无法删除，请先清理关联数据");
+        }
+
+        // Fitness records are soft-deleted and detached from student on student removal.
+        fitnessTestRecordMapper.update(
+                null,
+                Wrappers.<FitnessTestRecord>lambdaUpdate()
+                        .eq(FitnessTestRecord::getStudentId, id)
+                        .set(FitnessTestRecord::getStudentNameSnapshot, student.getName())
+                        .set(FitnessTestRecord::getStudentId, null)
+                        .set(FitnessTestRecord::getDeleted, 1)
+        );
+
+        Long trainingCount = trainingRecordMapper.selectCount(
+                Wrappers.<TrainingRecord>lambdaQuery()
+                        .eq(TrainingRecord::getStudentId, id)
+        );
+        if (trainingCount != null && trainingCount > 0) {
+            throw new BusinessException(HttpStatus.CONFLICT, "该学员存在训练记录，无法删除，请先清理关联数据");
+        }
+
+        userAccountService.deleteByStudentId(id);
+        studentMapper.deleteById(id);
     }
 
     @Transactional(readOnly = true)
@@ -108,6 +167,11 @@ public class StudentService {
             throw new ResourceNotFoundException("student not found: " + id);
         }
         return student;
+    }
+
+    @Transactional(readOnly = true)
+    public Student findNullableById(Long id) {
+        return studentMapper.selectById(id);
     }
 
     private StudentResponse toResponse(Student student) {

@@ -81,11 +81,21 @@ cd Code/backend-service/ManagementPlatform
 - `POST /api/v1/auth/refresh`
 - `POST /api/v1/auth/logout`
 
-默认内存用户：
+默认系统用户（写入 `user_accounts` 表）：
 - `admin / Admin@123`（角色：`ADMIN`）
 - `coach / Coach@123`（角色：`COACH`）
 - `student / Student@123`（角色：`STUDENT`）
 - `parent / Parent@123`（角色：`PARENT`）
+
+业务档案关联登录账户规则：
+- 新增教练时自动创建登录用户：用户名 `coach_{coachCode}`，初始密码 `{coachCode}@123`
+- 新增学员时自动创建登录用户：用户名 `student_{studentNo}`，初始密码 `{studentNo}@123`
+- 密码以 BCrypt 哈希方式存储在数据库，不保存明文
+
+密码管理接口：
+- 本人修改密码：`POST /api/v1/auth/change-password`
+- 管理员直接改密：`PUT /api/v1/user-accounts/password`
+- 管理员重置初始密码：`POST /api/v1/user-accounts/reset-password`
 
 ## 核心接口
 - 健康检查：`GET /api/v1/public/ping`

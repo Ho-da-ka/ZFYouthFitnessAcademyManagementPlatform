@@ -36,6 +36,7 @@ public class FitnessTestService {
         record.setTestValue(request.testValue());
         record.setUnit(request.unit());
         record.setComment(request.comment());
+        record.setStudentNameSnapshot(student.getName());
         fitnessTestRecordMapper.insert(record);
         return toResponse(record, student);
     }
@@ -54,8 +55,25 @@ public class FitnessTestService {
     }
 
     private FitnessTestResponse toResponse(FitnessTestRecord record) {
-        Student student = studentService.getEntityById(record.getStudentId());
-        return toResponse(record, student);
+        Student student = null;
+        if (record.getStudentId() != null) {
+            student = studentService.findNullableById(record.getStudentId());
+        }
+        if (student != null) {
+            return toResponse(record, student);
+        }
+        return new FitnessTestResponse(
+                record.getId(),
+                record.getStudentId(),
+                record.getStudentNameSnapshot(),
+                record.getTestDate(),
+                record.getItemName(),
+                record.getTestValue(),
+                record.getUnit(),
+                record.getComment(),
+                record.getCreatedAt(),
+                record.getUpdatedAt()
+        );
     }
 
     private FitnessTestResponse toResponse(FitnessTestRecord record, Student student) {
