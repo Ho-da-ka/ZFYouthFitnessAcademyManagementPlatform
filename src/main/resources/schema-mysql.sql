@@ -171,3 +171,16 @@ CREATE TABLE IF NOT EXISTS in_app_messages (
     KEY idx_in_app_messages_read (is_read),
     CONSTRAINT fk_in_app_messages_parent FOREIGN KEY (parent_account_id) REFERENCES parent_accounts(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS refresh_tokens (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    token VARCHAR(128) NOT NULL,
+    username VARCHAR(64) NOT NULL,
+    role VARCHAR(16) NOT NULL,
+    expires_at DATETIME NOT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY uk_refresh_tokens_token (token),
+    KEY idx_refresh_tokens_expires_at (expires_at),
+    KEY idx_refresh_tokens_username (username)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

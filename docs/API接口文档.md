@@ -1,26 +1,52 @@
-# ZF 青少年体能培训教务管理平台 后端接口文档
+# ZF 青少年体能培训教务管理平台后端接口文档
 
 ## 1. 基础信息
-- 接口前缀: `/api/v1`
-- 本地地址: `http://localhost:8080`
-- 数据格式: `application/json`
-- 日期格式:
-  - `LocalDate`: `yyyy-MM-dd`，示例 `2026-03-25`
-  - `LocalDateTime`: ISO-8601，示例 `2026-03-25T10:30:00`
+- 接口前缀：`/api/v1`
+- 本地地址：`http://localhost:8080`
+- 数据格式：`application/json`
+- 日期格式：
+  - `LocalDate`：`yyyy-MM-dd`
+  - `LocalDateTime`：ISO-8601（示例：`2026-04-10T20:30:00`）
 
-## 2. 鉴权与权限
-- 公开接口: `/api/v1/public/**`
-- 其余 `/api/v1/**` 默认需要认证
-- 当前认证方式: `HTTP Basic`
-- 内置测试账号:
-  - `admin / Admin@123` (角色 `ADMIN`)
-  - `coach / Coach@123` (角色 `COACH`)
-- 请求头示例:
-  - `Authorization: Basic base64(admin:Admin@123)`
-- 说明: 项目中存在 `Bearer` 令牌占位过滤器，但当前未建立完整 JWT 登录换 token 流程。
+## 2. 认证与权限
+
+### 2.1 认证方式（当前）
+- 使用 JWT Bearer Token：
+  - `POST /api/v1/auth/login`
+  - `POST /api/v1/auth/refresh`
+  - `POST /api/v1/auth/logout`
+  - `POST /api/v1/auth/change-password`
+- 请求头示例：
+  - `Authorization: Bearer <accessToken>`
+
+### 2.2 Refresh Token 持久化
+- Refresh Token 已持久化到数据库表：`refresh_tokens`
+- 关键行为：
+  - 登录发放 refresh token（写库）
+  - 刷新时旧 token 一次性消费（读后删）
+  - 退出时 token 主动失效（删库）
+  - 过期 token 自动清理
+
+### 2.3 公开接口
+- `GET /api/v1/public/ping`
+
+### 2.4 角色权限摘要
+- `ADMIN`：
+  - 学员/课程/教练管理写操作
+  - 账户密码管理（管理员改密、重置）
+- `ADMIN` / `COACH`：
+  - 学员/课程/教练查询
+  - 考勤、体测、训练记录管理
+- `PARENT`：
+  - `/api/v1/parent/**` 家长端数据访问
+
+### 2.5 默认账号（开发环境）
+- `admin / Admin@123`（`ADMIN`）
+- `coach / Coach@123`（`COACH`）
+- `student / Student@123`（`STUDENT`）
+- `parent / Parent@123`（`PARENT`）
 
 ## 3. 统一返回结构
-### 3.1 通用返回
 ```json
 {
   "success": true,
@@ -29,7 +55,7 @@
 }
 ```
 
-### 3.2 分页返回 (`PageResponse<T>`)
+分页返回（`PageResponse<T>`）：
 ```json
 {
   "success": true,
@@ -44,308 +70,149 @@
 }
 ```
 
-### 3.3 常见错误码
-- `400 Bad Request`: 参数校验失败
-- `401 Unauthorized`: 未认证
-- `403 Forbidden`: 角色权限不足
-- `404 Not Found`: 资源不存在
-- `409 Conflict`: 业务冲突（如编号重复、资源被引用）
-- `500 Internal Server Error`: 服务内部异常
+## 4. 通用错误码
+- `400` 参数校验失败
+- `401` 未认证或 token 失效
+- `403` 无权限
+- `404` 资源不存在
+- `409` 业务冲突（重复、容量不足、被引用等）
+- `500` 服务内部异常
 
-## 4. 枚举值
-- `Gender`: `MALE`, `FEMALE`
-- `StudentStatus`: `ACTIVE`, `INACTIVE`
-- `CoachStatus`: `ACTIVE`, `INACTIVE`
-- `CourseStatus`: `PLANNED`, `ONGOING`, `COMPLETED`, `CANCELLED`
-- `AttendanceStatus`: `PRESENT`, `LATE`, `ABSENT`, `LEAVE`
-- `TrainingIntensityLevel`（前端约定值）: `LOW`, `MEDIUM`, `HIGH`
+## 5. 枚举
+- `Gender`：`MALE` / `FEMALE`
+- `StudentStatus`：`ACTIVE` / `INACTIVE`
+- `CoachStatus`：`ACTIVE` / `INACTIVE`
+- `CourseStatus`：`PLANNED` / `ONGOING` / `COMPLETED` / `CANCELLED`
+- `AttendanceStatus`：`PRESENT` / `LATE` / `ABSENT` / `LEAVE`
 
-## 5. 接口清单
+## 6. 鉴权相关接口
 
-### 5.1 健康检查
-- 方法/路径: `GET /api/v1/public/ping`
-- 权限: 无需登录
-- 响应示例:
+### 6.1 登录
+- `POST /api/v1/auth/login`
+- 请求体：
 ```json
 {
-  "success": true,
-  "message": "OK",
-  "data": {
-    "service": "management-platform",
-    "time": "2026-03-25T10:30:00",
-    "status": "UP"
-  }
+  "username": "admin",
+  "password": "Admin@123"
+}
+```
+- 响应 `data` 关键字段：
+  - `tokenType`
+  - `accessToken`
+  - `accessTokenExpiresIn`
+  - `refreshToken`
+  - `username`
+  - `role`
+
+### 6.2 刷新 Token
+- `POST /api/v1/auth/refresh`
+- 请求体：
+```json
+{
+  "refreshToken": "..."
 }
 ```
 
-### 5.2 学员管理
-#### 5.2.1 创建学员
-- 方法/路径: `POST /api/v1/students`
-- 权限: `ADMIN`
-- 请求体:
+### 6.3 退出登录
+- `POST /api/v1/auth/logout`
+- 请求体（可选）：
 ```json
 {
-  "studentNo": "S2026001",
-  "name": "张三",
-  "gender": "MALE",
-  "birthDate": "2012-06-01",
-  "guardianName": "张家长",
-  "guardianPhone": "13800138000",
-  "status": "ACTIVE",
-  "remarks": "初始建档"
+  "refreshToken": "..."
 }
 ```
-- 规则:
-  - `studentNo`, `name`, `gender`, `birthDate` 必填
-  - `studentNo` 不能重复，重复返回 `409`
-  - `guardianPhone` 若填写，需匹配 `^[0-9+\-]{6,20}$`
-  - `status` 不传时默认 `ACTIVE`
 
-#### 5.2.2 更新学员
-- 方法/路径: `PUT /api/v1/students/{id}`
-- 权限: `ADMIN`
-- 路径参数: `id` 学员ID
-- 请求体: 与创建类似，但 `status` 必填（`studentNo` 不可改）
+### 6.4 本人修改密码
+- `POST /api/v1/auth/change-password`
+- 需登录
 
-#### 5.2.3 获取学员详情
-- 方法/路径: `GET /api/v1/students/{id}`
-- 权限: `ADMIN` / `COACH`
+### 6.5 管理员密码管理
+- `PUT /api/v1/user-accounts/password`
+- `POST /api/v1/user-accounts/reset-password`
+- 仅 `ADMIN`
 
-#### 5.2.4 分页查询学员
-- 方法/路径: `GET /api/v1/students`
-- 权限: `ADMIN` / `COACH`
-- 查询参数:
-  - `page` 默认 `0`
-  - `size` 默认 `10`
-  - `name` 可选，按姓名模糊查询
-  - `status` 可选，`ACTIVE` / `INACTIVE`
+## 7. 管理端核心接口
 
-### 5.3 教练管理
-#### 5.3.1 创建教练
-- 方法/路径: `POST /api/v1/coaches`
-- 权限: `ADMIN`
-- 请求体:
-```json
-{
-  "coachCode": "T2026001",
-  "name": "李教练",
-  "gender": "MALE",
-  "phone": "13800138001",
-  "specialty": "青少年体能、速度敏捷训练",
-  "status": "ACTIVE",
-  "remarks": "周中晚间排课为主"
-}
-```
-- 规则:
-  - `coachCode`, `name`, `gender` 必填
-  - `coachCode` 与 `name` 均不能重复，重复返回 `409`
-  - `phone` 若填写，需匹配 `^[0-9+\-]{6,20}$`
-  - `status` 不传时默认 `ACTIVE`
+### 7.1 学员
+- `POST /api/v1/students`（`ADMIN`）
+- `PUT /api/v1/students/{id}`（`ADMIN`）
+- `DELETE /api/v1/students/{id}`（`ADMIN`）
+- `GET /api/v1/students/{id}`（`ADMIN`/`COACH`）
+- `GET /api/v1/students`（`ADMIN`/`COACH`，分页）
 
-#### 5.3.2 更新教练
-- 方法/路径: `PUT /api/v1/coaches/{id}`
-- 权限: `ADMIN`
-- 路径参数: `id` 教练ID
-- 请求体:
-```json
-{
-  "name": "李教练",
-  "gender": "MALE",
-  "phone": "13800138001",
-  "specialty": "体能基础、爆发力训练",
-  "status": "ACTIVE",
-  "remarks": "已完成春季班排课"
-}
-```
-- 规则:
-  - `name`, `gender`, `status` 必填
-  - 若修改了教练姓名，系统会同步更新课程中的 `coachName`
+### 7.2 教练
+- `POST /api/v1/coaches`（`ADMIN`）
+- `PUT /api/v1/coaches/{id}`（`ADMIN`）
+- `DELETE /api/v1/coaches/{id}`（`ADMIN`）
+- `GET /api/v1/coaches/{id}`（`ADMIN`/`COACH`）
+- `GET /api/v1/coaches`（`ADMIN`/`COACH`，分页）
+- `GET /api/v1/coaches/options`（`ADMIN`/`COACH`）
 
-#### 5.3.3 删除教练
-- 方法/路径: `DELETE /api/v1/coaches/{id}`
-- 权限: `ADMIN`
-- 路径参数: `id` 教练ID
-- 规则:
-  - 如果已有课程使用该教练姓名，返回 `409 coach is referenced by courses`
+### 7.3 课程
+- `POST /api/v1/courses`（`ADMIN`）
+- `PUT /api/v1/courses/{id}`（`ADMIN`）
+- `GET /api/v1/courses/{id}`（`ADMIN`/`COACH`）
+- `GET /api/v1/courses`（`ADMIN`/`COACH`，分页）
 
-#### 5.3.4 获取教练详情
-- 方法/路径: `GET /api/v1/coaches/{id}`
-- 权限: `ADMIN` / `COACH`
+### 7.4 考勤 / 体测 / 训练
+- 考勤：
+  - `POST /api/v1/attendances`
+  - `GET /api/v1/attendances`
+  - `DELETE /api/v1/attendances/{id}`
+- 体测：
+  - `POST /api/v1/fitness-tests`
+  - `GET /api/v1/fitness-tests`
+- 训练：
+  - `POST /api/v1/training-records`
+  - `PUT /api/v1/training-records/{id}`
+  - `GET /api/v1/training-records/{id}`
+  - `GET /api/v1/training-records`
+- 上述接口均为 `ADMIN` / `COACH`
 
-#### 5.3.5 分页查询教练
-- 方法/路径: `GET /api/v1/coaches`
-- 权限: `ADMIN` / `COACH`
-- 查询参数:
-  - `page` 默认 `0`
-  - `size` 默认 `10`
-  - `name` 可选，按姓名模糊查询
-  - `status` 可选，`ACTIVE` / `INACTIVE`
+## 8. 家长端接口（`/api/v1/parent`）
 
-#### 5.3.6 查询可选教练
-- 方法/路径: `GET /api/v1/coaches/options`
-- 权限: `ADMIN` / `COACH`
-- 返回: 当前所有 `ACTIVE` 状态教练，供课程表单、训练表单等选择组件使用
+### 8.1 我的孩子
+- `GET /api/v1/parent/children`
 
-### 5.4 课程管理
-#### 5.4.1 创建课程
-- 方法/路径: `POST /api/v1/courses`
-- 权限: `ADMIN`
-- 请求体:
-```json
-{
-  "courseCode": "C2026001",
-  "name": "青少年体能基础班",
-  "courseType": "体能训练",
-  "coachName": "李教练",
-  "venue": "A馆1号场",
-  "startTime": "2026-03-25T19:00:00",
-  "durationMinutes": 90,
-  "status": "PLANNED",
-  "description": "每周二四晚间"
-}
-```
-- 规则:
-  - `courseCode`, `name`, `courseType`, `coachName`, `venue`, `startTime`, `durationMinutes` 必填
-  - `courseCode` 不能重复，重复返回 `409`
-  - `durationMinutes >= 1`
-  - `status` 不传时默认 `PLANNED`
-- 说明:
-  - 建议先在教练管理中维护教练档案，再在课程表单中选择对应 `coachName`
+### 8.2 可预约课程
+- `GET /api/v1/parent/courses`
+- 返回课程容量摘要：`capacity`、`bookedCount`、`availableCount`
 
-#### 5.4.2 更新课程
-- 方法/路径: `PUT /api/v1/courses/{id}`
-- 权限: `ADMIN`
-- 路径参数: `id` 课程ID
-- 请求体: 与创建类似，但 `status` 必填（`courseCode` 不可改）
-
-#### 5.4.3 获取课程详情
-- 方法/路径: `GET /api/v1/courses/{id}`
-- 权限: `ADMIN` / `COACH`
-
-#### 5.4.4 分页查询课程
-- 方法/路径: `GET /api/v1/courses`
-- 权限: `ADMIN` / `COACH`
-- 查询参数:
-  - `page` 默认 `0`
-  - `size` 默认 `10`
-  - `name` 可选，按课程名模糊查询
-  - `status` 可选，`PLANNED` / `ONGOING` / `COMPLETED` / `CANCELLED`
-
-### 5.5 考勤管理
-#### 5.5.1 新增考勤记录
-- 方法/路径: `POST /api/v1/attendances`
-- 权限: `ADMIN` / `COACH`
-- 请求体:
+### 8.3 预约管理
+- `GET /api/v1/parent/bookings`
+- `POST /api/v1/parent/bookings`
 ```json
 {
   "studentId": 1,
   "courseId": 1,
-  "attendanceDate": "2026-03-25",
-  "status": "PRESENT",
-  "note": "到课正常"
+  "remark": "周末体验"
 }
 ```
-- 规则:
-  - `studentId`, `courseId`, `attendanceDate`, `status` 必填
-  - `studentId` / `courseId` 对应资源不存在会返回 `404`
+- `DELETE /api/v1/parent/bookings/{id}`
 
-#### 5.5.2 查询考勤记录
-- 方法/路径: `GET /api/v1/attendances`
-- 权限: `ADMIN` / `COACH`
-- 查询参数（均可选）:
-  - `studentId`
-  - `courseId`
-  - `startDate`
-  - `endDate`
-- 返回: `List<AttendanceResponse>`（按 `attendanceDate`、`id` 倒序）
-
-### 5.6 体测管理
-#### 5.6.1 新增体测记录
-- 方法/路径: `POST /api/v1/fitness-tests`
-- 权限: `ADMIN` / `COACH`
-- 请求体:
+### 8.4 签到
+- `GET /api/v1/parent/checkins`
+- `POST /api/v1/parent/checkins`
 ```json
 {
-  "studentId": 1,
-  "testDate": "2026-03-25",
-  "itemName": "50米跑",
-  "testValue": 8.72,
-  "unit": "s",
-  "comment": "较上月提升"
+  "bookingId": 1,
+  "attendanceDate": "2026-04-10",
+  "note": "家长手动签到"
 }
 ```
-- 规则:
-  - `studentId`, `testDate`, `itemName`, `testValue`, `unit` 必填
-  - `testValue > 0`
-  - `studentId` 不存在返回 `404`
 
-#### 5.6.2 查询体测记录
-- 方法/路径: `GET /api/v1/fitness-tests`
-- 权限: `ADMIN` / `COACH`
-- 查询参数（可选）:
-  - `studentId`：按学员筛选；不传时返回全量体测记录
-- 返回: `List<FitnessTestResponse>`（按 `testDate`、`id` 倒序）
+### 8.5 体测记录
+- `GET /api/v1/parent/fitness-tests`
+- 可选参数：`studentId`
 
-### 5.7 训练记录管理
-#### 5.7.1 新增训练记录
-- 方法/路径: `POST /api/v1/training-records`
-- 权限: `ADMIN` / `COACH`
-- 请求体:
-```json
-{
-  "studentId": 1,
-  "courseId": 1,
-  "trainingDate": "2026-03-25",
-  "trainingContent": "热身跑、敏捷梯训练、核心力量训练",
-  "durationMinutes": 60,
-  "intensityLevel": "MEDIUM",
-  "performanceSummary": "动作完成度较稳定，核心控制提升",
-  "coachComment": "下次重点加强下肢爆发力训练"
-}
-```
-- 规则:
-  - `studentId`, `courseId`, `trainingDate`, `trainingContent`, `durationMinutes` 必填
-  - `trainingContent` 最大长度 255
-  - `durationMinutes >= 1`
-  - `intensityLevel` 最大长度 32
-  - `performanceSummary`, `coachComment` 最大长度 255
-  - `studentId` / `courseId` 对应资源不存在会返回 `404`
+### 8.6 站内消息
+- `GET /api/v1/parent/messages`
+- `PATCH /api/v1/parent/messages/{id}/read`
+- 兼容小程序：
+  - `POST /api/v1/parent/messages/{id}/read`
 
-#### 5.7.2 更新训练记录
-- 方法/路径: `PUT /api/v1/training-records/{id}`
-- 权限: `ADMIN` / `COACH`
-- 路径参数: `id` 训练记录ID
-- 请求体: 与创建相同
+## 9. 相关文档
+- README：`README.md`
+- Postman 集合：`docs/ZFYouthFitnessAcademy-API.postman_collection.json`
+- OpenSpec：`openspec/changes/`
 
-#### 5.7.3 获取训练记录详情
-- 方法/路径: `GET /api/v1/training-records/{id}`
-- 权限: `ADMIN` / `COACH`
-
-#### 5.7.4 查询训练记录
-- 方法/路径: `GET /api/v1/training-records`
-- 权限: `ADMIN` / `COACH`
-- 查询参数（均可选）:
-  - `studentId`
-  - `courseId`
-  - `startDate`
-  - `endDate`
-- 返回: `List<TrainingRecordResponse>`（按 `trainingDate`、`id` 倒序）
-
-## 6. 响应对象字段摘要
-### 6.1 StudentResponse
-`id`, `studentNo`, `name`, `gender`, `birthDate`, `guardianName`, `guardianPhone`, `status`, `remarks`, `createdAt`, `updatedAt`
-
-### 6.2 CoachResponse
-`id`, `coachCode`, `name`, `gender`, `phone`, `specialty`, `status`, `remarks`, `createdAt`, `updatedAt`
-
-### 6.3 CourseResponse
-`id`, `courseCode`, `name`, `courseType`, `coachName`, `venue`, `startTime`, `durationMinutes`, `status`, `description`, `createdAt`, `updatedAt`
-
-### 6.4 AttendanceResponse
-`id`, `studentId`, `studentName`, `courseId`, `courseName`, `attendanceDate`, `status`, `note`, `createdAt`, `updatedAt`
-
-### 6.5 FitnessTestResponse
-`id`, `studentId`, `studentName`, `testDate`, `itemName`, `testValue`, `unit`, `comment`, `createdAt`, `updatedAt`
-
-### 6.6 TrainingRecordResponse
-`id`, `studentId`, `studentName`, `courseId`, `courseName`, `trainingDate`, `trainingContent`, `durationMinutes`, `intensityLevel`, `performanceSummary`, `coachComment`, `createdAt`, `updatedAt`
