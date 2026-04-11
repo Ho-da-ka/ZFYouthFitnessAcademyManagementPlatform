@@ -1,5 +1,5 @@
-﻿- [x] 设计训练记录表结构与字段约束
+- [x] 设计训练记录表结构与字段约束
 - [x] 实现训练记录实体、Mapper、DTO、Service、Controller
 - [x] 同步数据库初始化脚本
 - [x] 同步接口文档和 Postman 集合
-- [ ] 完成 Maven 编译验证（当前受本地 Maven Wrapper 缺失文件阻塞）
+- [x] 完成 Maven 编译验证（`./mvnw -DskipTests compile`）

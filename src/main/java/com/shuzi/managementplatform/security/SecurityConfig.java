@@ -49,6 +49,8 @@ public class SecurityConfig {
                         // Coach and admin domain operations
                         .requestMatchers("/api/v1/attendances/**", "/api/v1/fitness-tests/**", "/api/v1/training-records/**")
                         .hasAnyRole("ADMIN", "COACH")
+                        // Student self-service endpoints
+                        .requestMatchers("/api/v1/student/**").hasRole("STUDENT")
                         // Reserved role boundary for phase-2 endpoints
                         .requestMatchers("/api/v1/parent/**").hasRole("PARENT")
                         .requestMatchers("/api/v1/**").authenticated()
