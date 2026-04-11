@@ -11,6 +11,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.util.Locale;
 
@@ -25,19 +26,22 @@ public class AuthService {
     private final JwtTokenProvider jwtTokenProvider;
     private final RefreshTokenStore refreshTokenStore;
     private final UserAccountService userAccountService;
+    private final LoginCryptoService loginCryptoService;
 
     public AuthService(
             UserDetailsService userDetailsService,
             PasswordEncoder passwordEncoder,
             JwtTokenProvider jwtTokenProvider,
             RefreshTokenStore refreshTokenStore,
-            UserAccountService userAccountService
+            UserAccountService userAccountService,
+            LoginCryptoService loginCryptoService
     ) {
         this.userDetailsService = userDetailsService;
         this.passwordEncoder = passwordEncoder;
         this.jwtTokenProvider = jwtTokenProvider;
         this.refreshTokenStore = refreshTokenStore;
         this.userAccountService = userAccountService;
+        this.loginCryptoService = loginCryptoService;
     }
 
     public AuthTokenResponse login(LoginRequest request) {
@@ -49,7 +53,8 @@ public class AuthService {
             throw new BusinessException(HttpStatus.UNAUTHORIZED, "用户名或密码错误");
         }
 
-        if (!passwordEncoder.matches(request.password(), userDetails.getPassword())) {
+        String rawPassword = resolveRawPassword(request);
+        if (!passwordEncoder.matches(rawPassword, userDetails.getPassword())) {
             throw new BusinessException(HttpStatus.UNAUTHORIZED, "用户名或密码错误");
         }
 
@@ -95,6 +100,19 @@ public class AuthService {
 
     public void changePassword(String username, String oldPassword, String newPassword) {
         userAccountService.changePasswordBySelf(username, oldPassword, newPassword);
+    }
+
+    private String resolveRawPassword(LoginRequest request) {
+        if (StringUtils.hasText(request.encryptedPassword()) || StringUtils.hasText(request.iv())) {
+            if (!StringUtils.hasText(request.encryptedPassword()) || !StringUtils.hasText(request.iv())) {
+                throw new BusinessException(HttpStatus.BAD_REQUEST, "login credential is incomplete");
+            }
+            return loginCryptoService.decrypt(request.encryptedPassword(), request.iv());
+        }
+        if (!StringUtils.hasText(request.password())) {
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "password is required");
+        }
+        return request.password();
     }
 
     private String extractRole(UserDetails userDetails) {
