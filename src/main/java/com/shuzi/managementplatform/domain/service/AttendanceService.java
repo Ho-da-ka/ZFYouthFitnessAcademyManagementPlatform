@@ -2,6 +2,8 @@ package com.shuzi.managementplatform.domain.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.shuzi.managementplatform.common.exception.ResourceNotFoundException;
 import com.shuzi.managementplatform.domain.entity.AttendanceRecord;
 import com.shuzi.managementplatform.domain.entity.Course;
@@ -9,11 +11,11 @@ import com.shuzi.managementplatform.domain.entity.Student;
 import com.shuzi.managementplatform.domain.mapper.AttendanceRecordMapper;
 import com.shuzi.managementplatform.web.dto.attendance.AttendanceCreateRequest;
 import com.shuzi.managementplatform.web.dto.attendance.AttendanceResponse;
+import com.shuzi.managementplatform.web.dto.attendance.AttendanceUpdateRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.util.List;
 
 /**
  * Attendance service handles write/query operations for class attendance records.
@@ -59,28 +61,32 @@ public class AttendanceService {
         attendanceRecordMapper.deleteById(id);
     }
 
+    @Transactional
+    public AttendanceResponse update(Long id, AttendanceUpdateRequest request) {
+        AttendanceRecord record = attendanceRecordMapper.selectById(id);
+        if (record == null) {
+            throw new ResourceNotFoundException("attendance record not found: " + id);
+        }
+        record.setStatus(request.status());
+        record.setNote(request.note());
+        attendanceRecordMapper.updateById(record);
+        return toResponse(record);
+    }
+
     @Transactional(readOnly = true)
-    public List<AttendanceResponse> search(Long studentId, Long courseId, LocalDate startDate, LocalDate endDate) {
-        // Build dynamic filtering conditions only when parameters are provided.
+    public IPage<AttendanceResponse> page(Long studentId, Long courseId, LocalDate startDate, LocalDate endDate, int page, int size) {
+        Page<AttendanceRecord> pageRequest = new Page<>(page + 1L, size);
         LambdaQueryWrapper<AttendanceRecord> query = Wrappers.<AttendanceRecord>lambdaQuery();
-        if (studentId != null) {
-            query.eq(AttendanceRecord::getStudentId, studentId);
-        }
-        if (courseId != null) {
-            query.eq(AttendanceRecord::getCourseId, courseId);
-        }
-        if (startDate != null) {
-            query.ge(AttendanceRecord::getAttendanceDate, startDate);
-        }
-        if (endDate != null) {
-            query.le(AttendanceRecord::getAttendanceDate, endDate);
-        }
+        if (studentId != null) query.eq(AttendanceRecord::getStudentId, studentId);
+        if (courseId != null) query.eq(AttendanceRecord::getCourseId, courseId);
+        if (startDate != null) query.ge(AttendanceRecord::getAttendanceDate, startDate);
+        if (endDate != null) query.le(AttendanceRecord::getAttendanceDate, endDate);
         query.orderByDesc(AttendanceRecord::getAttendanceDate, AttendanceRecord::getId);
 
-        return attendanceRecordMapper.selectList(query)
-                .stream()
-                .map(this::toResponse)
-                .toList();
+        Page<AttendanceRecord> result = attendanceRecordMapper.selectPage(pageRequest, query);
+        Page<AttendanceResponse> responsePage = new Page<>(result.getCurrent(), result.getSize(), result.getTotal());
+        responsePage.setRecords(result.getRecords().stream().map(this::toResponse).toList());
+        return responsePage;
     }
 
     private AttendanceResponse toResponse(AttendanceRecord record) {

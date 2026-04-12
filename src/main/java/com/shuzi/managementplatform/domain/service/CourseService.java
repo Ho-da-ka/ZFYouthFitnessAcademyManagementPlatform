@@ -6,9 +6,13 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.shuzi.managementplatform.common.exception.BusinessException;
 import com.shuzi.managementplatform.common.exception.ResourceNotFoundException;
+import com.shuzi.managementplatform.domain.entity.AttendanceRecord;
 import com.shuzi.managementplatform.domain.entity.Course;
+import com.shuzi.managementplatform.domain.entity.TrainingRecord;
 import com.shuzi.managementplatform.domain.enums.CourseStatus;
+import com.shuzi.managementplatform.domain.mapper.AttendanceRecordMapper;
 import com.shuzi.managementplatform.domain.mapper.CourseMapper;
+import com.shuzi.managementplatform.domain.mapper.TrainingRecordMapper;
 import com.shuzi.managementplatform.web.dto.course.CourseCreateRequest;
 import com.shuzi.managementplatform.web.dto.course.CourseResponse;
 import com.shuzi.managementplatform.web.dto.course.CourseUpdateRequest;
@@ -26,9 +30,15 @@ import java.util.List;
 public class CourseService {
 
     private final CourseMapper courseMapper;
+    private final AttendanceRecordMapper attendanceRecordMapper;
+    private final TrainingRecordMapper trainingRecordMapper;
 
-    public CourseService(CourseMapper courseMapper) {
+    public CourseService(CourseMapper courseMapper,
+                         AttendanceRecordMapper attendanceRecordMapper,
+                         TrainingRecordMapper trainingRecordMapper) {
         this.courseMapper = courseMapper;
+        this.attendanceRecordMapper = attendanceRecordMapper;
+        this.trainingRecordMapper = trainingRecordMapper;
     }
 
     @Transactional
@@ -101,6 +111,29 @@ public class CourseService {
         Page<CourseResponse> responsePage = new Page<>(result.getCurrent(), result.getSize(), result.getTotal());
         responsePage.setRecords(records);
         return responsePage;
+    }
+
+    @Transactional
+    public void delete(Long id, boolean force) {
+        Course course = courseMapper.selectById(id);
+        if (course == null) {
+            throw new ResourceNotFoundException("course not found: " + id);
+        }
+        long attendanceCount = attendanceRecordMapper.selectCount(
+                Wrappers.<AttendanceRecord>lambdaQuery().eq(AttendanceRecord::getCourseId, id));
+        long trainingCount = trainingRecordMapper.selectCount(
+                Wrappers.<TrainingRecord>lambdaQuery().eq(TrainingRecord::getCourseId, id));
+        if (!force && (attendanceCount > 0 || trainingCount > 0)) {
+            throw new BusinessException(HttpStatus.CONFLICT,
+                    "课程存在关联数据（考勤:" + attendanceCount + "，训练:" + trainingCount + "），请先删除关联数据或使用强制删除");
+        }
+        if (force) {
+            attendanceRecordMapper.delete(
+                    Wrappers.<AttendanceRecord>lambdaQuery().eq(AttendanceRecord::getCourseId, id));
+            trainingRecordMapper.delete(
+                    Wrappers.<TrainingRecord>lambdaQuery().eq(TrainingRecord::getCourseId, id));
+        }
+        courseMapper.deleteById(id);
     }
 
     @Transactional(readOnly = true)

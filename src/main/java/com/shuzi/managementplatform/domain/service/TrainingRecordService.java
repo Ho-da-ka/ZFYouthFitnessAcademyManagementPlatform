@@ -2,6 +2,8 @@ package com.shuzi.managementplatform.domain.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.shuzi.managementplatform.common.exception.ResourceNotFoundException;
 import com.shuzi.managementplatform.domain.entity.Course;
 import com.shuzi.managementplatform.domain.entity.Student;
@@ -63,6 +65,31 @@ public class TrainingRecordService {
                 request.durationMinutes(), request.intensityLevel(), request.performanceSummary(), request.coachComment());
         trainingRecordMapper.updateById(record);
         return toResponse(record, student, course);
+    }
+
+    @Transactional
+    public void delete(Long id) {
+        TrainingRecord record = trainingRecordMapper.selectById(id);
+        if (record == null) {
+            throw new ResourceNotFoundException("training record not found: " + id);
+        }
+        trainingRecordMapper.deleteById(id);
+    }
+
+    @Transactional(readOnly = true)
+    public IPage<TrainingRecordResponse> page(Long studentId, Long courseId, LocalDate startDate, LocalDate endDate, int page, int size) {
+        Page<TrainingRecord> pageRequest = new Page<>(page + 1L, size);
+        LambdaQueryWrapper<TrainingRecord> query = Wrappers.<TrainingRecord>lambdaQuery();
+        if (studentId != null) query.eq(TrainingRecord::getStudentId, studentId);
+        if (courseId != null) query.eq(TrainingRecord::getCourseId, courseId);
+        if (startDate != null) query.ge(TrainingRecord::getTrainingDate, startDate);
+        if (endDate != null) query.le(TrainingRecord::getTrainingDate, endDate);
+        query.orderByDesc(TrainingRecord::getTrainingDate, TrainingRecord::getId);
+
+        Page<TrainingRecord> result = trainingRecordMapper.selectPage(pageRequest, query);
+        Page<TrainingRecordResponse> responsePage = new Page<>(result.getCurrent(), result.getSize(), result.getTotal());
+        responsePage.setRecords(result.getRecords().stream().map(this::toResponse).toList());
+        return responsePage;
     }
 
     @Transactional(readOnly = true)
