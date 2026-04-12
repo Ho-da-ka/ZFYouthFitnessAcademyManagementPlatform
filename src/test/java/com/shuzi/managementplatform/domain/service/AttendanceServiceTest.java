@@ -36,6 +36,8 @@ class AttendanceServiceTest {
     private StudentService studentService;
     @Mock
     private CourseService courseService;
+    @Mock
+    private CareAlertService careAlertService;
 
     @InjectMocks
     private AttendanceService attendanceService;
@@ -80,6 +82,19 @@ class AttendanceServiceTest {
     }
 
     @Test
+    void createShouldRefreshCareAlertsForStudent() {
+        AttendanceCreateRequest request = new AttendanceCreateRequest(
+                1L, 2L, LocalDate.now(), AttendanceStatus.ABSENT, "chain absence");
+        when(attendanceRecordMapper.selectCount(ArgumentMatchers.any())).thenReturn(0L, 0L);
+        when(studentService.getEntityById(1L)).thenReturn(student);
+        when(courseService.getEntityById(2L)).thenReturn(course);
+
+        attendanceService.create(request);
+
+        verify(careAlertService).refreshStudentAlerts(1L);
+    }
+
+    @Test
     void updateShouldPersistStatusAndNote() {
         AttendanceRecord record = new AttendanceRecord();
         record.setStudentId(1L);
@@ -95,6 +110,7 @@ class AttendanceServiceTest {
         Assertions.assertEquals(AttendanceStatus.LATE, record.getStatus());
         Assertions.assertEquals("补签", record.getNote());
         verify(attendanceRecordMapper, times(1)).updateById(record);
+        verify(careAlertService).refreshStudentAlerts(1L);
     }
 
     @Test

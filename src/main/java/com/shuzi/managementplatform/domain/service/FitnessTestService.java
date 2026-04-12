@@ -25,10 +25,16 @@ public class FitnessTestService {
 
     private final FitnessTestRecordMapper fitnessTestRecordMapper;
     private final StudentService studentService;
+    private final CareAlertService careAlertService;
 
-    public FitnessTestService(FitnessTestRecordMapper fitnessTestRecordMapper, StudentService studentService) {
+    public FitnessTestService(
+            FitnessTestRecordMapper fitnessTestRecordMapper,
+            StudentService studentService,
+            CareAlertService careAlertService
+    ) {
         this.fitnessTestRecordMapper = fitnessTestRecordMapper;
         this.studentService = studentService;
+        this.careAlertService = careAlertService;
     }
 
     @Transactional
@@ -45,6 +51,7 @@ public class FitnessTestService {
         record.setComment(request.comment());
         record.setStudentNameSnapshot(student.getName());
         fitnessTestRecordMapper.insert(record);
+        careAlertService.refreshStudentAlerts(request.studentId());
         return toResponse(record, student);
     }
 
@@ -61,6 +68,9 @@ public class FitnessTestService {
         record.setUnit(request.unit());
         record.setComment(request.comment());
         fitnessTestRecordMapper.updateById(record);
+        if (record.getStudentId() != null) {
+            careAlertService.refreshStudentAlerts(record.getStudentId());
+        }
         return toResponse(record);
     }
 
@@ -71,6 +81,9 @@ public class FitnessTestService {
             throw new ResourceNotFoundException("fitness test record not found: " + id);
         }
         fitnessTestRecordMapper.deleteById(id);
+        if (record.getStudentId() != null) {
+            careAlertService.refreshStudentAlerts(record.getStudentId());
+        }
     }
 
     @Transactional(readOnly = true)

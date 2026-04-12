@@ -31,7 +31,22 @@ public record TrainingRecordCreateRequest(
         @Size(max = 255, message = "performanceSummary max length is 255")
         String performanceSummary,
 
-        @Size(max = 255, message = "coachComment max length is 255")
-        String coachComment
+        @Size(max = 255, message = "highlightNote max length is 255")
+        String highlightNote,
+
+        @Size(max = 255, message = "improvementNote max length is 255")
+        String improvementNote,
+
+        @Size(max = 255, message = "parentAction max length is 255")
+        String parentAction,
+
+        @Size(max = 255, message = "nextStepSuggestion max length is 255")
+        String nextStepSuggestion,
+
+        @Size(max = 500, message = "coachComment max length is 500")
+        String coachComment,
+
+        @Size(max = 500, message = "summaryForParent max length is 500")
+        String summaryForParent
 ) {
 }

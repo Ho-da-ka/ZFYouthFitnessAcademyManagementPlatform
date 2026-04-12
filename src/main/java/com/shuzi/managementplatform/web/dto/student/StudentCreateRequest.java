@@ -33,6 +33,19 @@ public record StudentCreateRequest(
         StudentStatus status,
 
         @Size(max = 255, message = "remarks max length is 255")
-        String remarks
+        String remarks,
+
+        @Size(max = 255, message = "goalFocus max length is 255")
+        String goalFocus,
+
+        @Size(max = 255, message = "trainingTags max length is 255")
+        String trainingTags,
+
+        @Size(max = 255, message = "riskNotes max length is 255")
+        String riskNotes,
+
+        LocalDate goalStartDate,
+
+        LocalDate goalEndDate
 ) {
 }

@@ -22,6 +22,11 @@ CREATE TABLE IF NOT EXISTS students (
     guardian_phone VARCHAR(32) NULL,
     status VARCHAR(16) NOT NULL,
     remarks VARCHAR(255) NULL,
+    goal_focus VARCHAR(255) NULL,
+    training_tags VARCHAR(255) NULL,
+    risk_notes VARCHAR(255) NULL,
+    goal_start_date DATE NULL,
+    goal_end_date DATE NULL,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     UNIQUE KEY uk_students_student_no (student_no)
@@ -61,6 +66,10 @@ CREATE TABLE IF NOT EXISTS courses (
     class_end_time TIME NULL,
     status VARCHAR(16) NOT NULL,
     description VARCHAR(255) NULL,
+    training_theme VARCHAR(100) NULL,
+    target_age_range VARCHAR(32) NULL,
+    target_goals VARCHAR(255) NULL,
+    focus_points VARCHAR(255) NULL,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     UNIQUE KEY uk_courses_course_code (course_code)
@@ -107,7 +116,13 @@ CREATE TABLE IF NOT EXISTS training_records (
     duration_minutes INT NOT NULL,
     intensity_level VARCHAR(32) NULL,
     performance_summary VARCHAR(255) NULL,
-    coach_comment VARCHAR(255) NULL,
+    highlight_note VARCHAR(255) NULL,
+    improvement_note VARCHAR(255) NULL,
+    parent_action VARCHAR(255) NULL,
+    next_step_suggestion VARCHAR(255) NULL,
+    coach_comment VARCHAR(500) NULL,
+    ai_summary VARCHAR(500) NULL,
+    parent_read_at DATETIME NULL,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     KEY idx_training_student_date (student_id, training_date),
@@ -127,6 +142,41 @@ CREATE TABLE IF NOT EXISTS parent_accounts (
     UNIQUE KEY uk_parent_accounts_user_account_id (user_account_id),
     KEY idx_parent_accounts_phone (phone),
     CONSTRAINT fk_parent_accounts_user_account FOREIGN KEY (user_account_id) REFERENCES user_accounts(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS stage_evaluations (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    student_id BIGINT NOT NULL,
+    cycle_name VARCHAR(100) NOT NULL,
+    period_start DATE NOT NULL,
+    period_end DATE NOT NULL,
+    attendance_rate DECIMAL(5,4) NOT NULL,
+    training_summary VARCHAR(255) NOT NULL,
+    fitness_summary VARCHAR(255) NOT NULL,
+    coach_evaluation VARCHAR(500) NOT NULL,
+    next_stage_plan VARCHAR(500) NOT NULL,
+    ai_interpretation VARCHAR(1000) NULL,
+    parent_report VARCHAR(1000) NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    KEY idx_stage_evaluations_student_period (student_id, period_start, period_end),
+    CONSTRAINT fk_stage_evaluations_student FOREIGN KEY (student_id) REFERENCES students(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS care_alerts (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    student_id BIGINT NOT NULL,
+    alert_type VARCHAR(32) NOT NULL,
+    alert_title VARCHAR(100) NOT NULL,
+    alert_content VARCHAR(500) NOT NULL,
+    status VARCHAR(16) NOT NULL DEFAULT 'OPEN',
+    triggered_at DATETIME NOT NULL,
+    resolved_at DATETIME NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    KEY idx_care_alerts_student_status (student_id, status),
+    KEY idx_care_alerts_triggered_at (triggered_at),
+    CONSTRAINT fk_care_alerts_student FOREIGN KEY (student_id) REFERENCES students(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS parent_student_relations (
@@ -193,4 +243,36 @@ ALTER TABLE courses
     ADD COLUMN IF NOT EXISTS max_capacity INT NULL,
     ADD COLUMN IF NOT EXISTS course_date DATE NULL,
     ADD COLUMN IF NOT EXISTS class_start_time TIME NULL,
-    ADD COLUMN IF NOT EXISTS class_end_time TIME NULL;
+    ADD COLUMN IF NOT EXISTS class_end_time TIME NULL,
+    ADD COLUMN IF NOT EXISTS training_theme VARCHAR(100) NULL,
+    ADD COLUMN IF NOT EXISTS target_age_range VARCHAR(32) NULL,
+    ADD COLUMN IF NOT EXISTS target_goals VARCHAR(255) NULL,
+    ADD COLUMN IF NOT EXISTS focus_points VARCHAR(255) NULL;
+
+ALTER TABLE students
+    ADD COLUMN IF NOT EXISTS goal_focus VARCHAR(255) NULL,
+    ADD COLUMN IF NOT EXISTS training_tags VARCHAR(255) NULL,
+    ADD COLUMN IF NOT EXISTS risk_notes VARCHAR(255) NULL,
+    ADD COLUMN IF NOT EXISTS goal_start_date DATE NULL,
+    ADD COLUMN IF NOT EXISTS goal_end_date DATE NULL;
+
+ALTER TABLE training_records
+    ADD COLUMN IF NOT EXISTS highlight_note VARCHAR(255) NULL,
+    ADD COLUMN IF NOT EXISTS improvement_note VARCHAR(255) NULL,
+    ADD COLUMN IF NOT EXISTS parent_action VARCHAR(255) NULL,
+    ADD COLUMN IF NOT EXISTS next_step_suggestion VARCHAR(255) NULL,
+    ADD COLUMN IF NOT EXISTS coach_comment VARCHAR(500) NULL,
+    ADD COLUMN IF NOT EXISTS ai_summary VARCHAR(500) NULL,
+    ADD COLUMN IF NOT EXISTS parent_read_at DATETIME NULL;
+
+ALTER TABLE stage_evaluations
+    ADD COLUMN IF NOT EXISTS cycle_name VARCHAR(100) NOT NULL,
+    ADD COLUMN IF NOT EXISTS period_start DATE NOT NULL,
+    ADD COLUMN IF NOT EXISTS period_end DATE NOT NULL,
+    ADD COLUMN IF NOT EXISTS attendance_rate DECIMAL(5,4) NOT NULL,
+    ADD COLUMN IF NOT EXISTS training_summary VARCHAR(255) NOT NULL,
+    ADD COLUMN IF NOT EXISTS fitness_summary VARCHAR(255) NOT NULL,
+    ADD COLUMN IF NOT EXISTS coach_evaluation VARCHAR(500) NOT NULL,
+    ADD COLUMN IF NOT EXISTS next_stage_plan VARCHAR(500) NOT NULL,
+    ADD COLUMN IF NOT EXISTS ai_interpretation VARCHAR(1000) NULL,
+    ADD COLUMN IF NOT EXISTS parent_report VARCHAR(1000) NULL;

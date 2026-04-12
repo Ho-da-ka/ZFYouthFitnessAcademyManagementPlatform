@@ -9,6 +9,7 @@ import com.shuzi.managementplatform.web.dto.parent.ParentCheckinResponse;
 import com.shuzi.managementplatform.web.dto.parent.ParentChildResponse;
 import com.shuzi.managementplatform.web.dto.parent.ParentCourseResponse;
 import com.shuzi.managementplatform.web.dto.parent.ParentFitnessResponse;
+import com.shuzi.managementplatform.web.dto.parent.ParentGrowthOverviewResponse;
 import com.shuzi.managementplatform.web.dto.parent.ParentMessageResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -104,6 +105,16 @@ public class ParentPortalController {
             @RequestParam(required = false) Long studentId
     ) {
         return ApiResponse.ok(parentPortalService.listFitnessTests(currentUsername(authentication), studentId));
+    }
+
+    @PreAuthorize("hasRole('PARENT')")
+    @GetMapping("/growth-overview")
+    @Operation(summary = "Get growth overview", description = "Get goal, recent feedback, and latest evaluation for one child")
+    public ApiResponse<ParentGrowthOverviewResponse> getGrowthOverview(
+            Authentication authentication,
+            @RequestParam Long studentId
+    ) {
+        return ApiResponse.ok(parentPortalService.getGrowthOverview(currentUsername(authentication), studentId));
     }
 
     @PreAuthorize("hasRole('PARENT')")

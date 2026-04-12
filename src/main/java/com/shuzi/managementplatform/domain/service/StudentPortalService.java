@@ -177,7 +177,13 @@ public class StudentPortalService {
                     record.getDurationMinutes(),
                     record.getIntensityLevel(),
                     record.getPerformanceSummary(),
+                    record.getHighlightNote(),
+                    record.getImprovementNote(),
+                    record.getParentAction(),
+                    record.getNextStepSuggestion(),
                     record.getCoachComment(),
+                    record.getAiSummary(),
+                    record.getParentReadAt(),
                     record.getCreatedAt(),
                     record.getUpdatedAt()
             );
