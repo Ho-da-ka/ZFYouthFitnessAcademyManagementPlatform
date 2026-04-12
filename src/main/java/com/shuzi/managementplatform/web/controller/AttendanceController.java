@@ -3,6 +3,7 @@ package com.shuzi.managementplatform.web.controller;
 import com.shuzi.managementplatform.common.api.ApiResponse;
 import com.shuzi.managementplatform.common.api.PageResponse;
 import com.shuzi.managementplatform.domain.service.AttendanceService;
+import com.shuzi.managementplatform.web.dto.attendance.AttendanceBatchCreateRequest;
 import com.shuzi.managementplatform.web.dto.attendance.AttendanceCreateRequest;
 import com.shuzi.managementplatform.web.dto.attendance.AttendanceResponse;
 import com.shuzi.managementplatform.web.dto.attendance.AttendanceUpdateRequest;
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/attendances")
@@ -38,6 +40,13 @@ public class AttendanceController {
     @Operation(summary = "Create attendance record")
     public ApiResponse<AttendanceResponse> create(@Valid @RequestBody AttendanceCreateRequest request) {
         return ApiResponse.ok("attendance recorded", attendanceService.create(request));
+    }
+
+    @PreAuthorize("hasAnyRole('ADMIN','COACH')")
+    @PostMapping("/batch")
+    @Operation(summary = "Batch create attendance records")
+    public ApiResponse<List<AttendanceResponse>> batchCreate(@Valid @RequestBody AttendanceBatchCreateRequest request) {
+        return ApiResponse.ok("batch attendance recorded", attendanceService.batchCreate(request));
     }
 
     @PreAuthorize("hasAnyRole('ADMIN','COACH')")

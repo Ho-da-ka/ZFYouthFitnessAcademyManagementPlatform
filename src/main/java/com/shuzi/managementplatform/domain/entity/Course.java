@@ -7,7 +7,9 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.shuzi.managementplatform.common.model.BaseEntity;
 import com.shuzi.managementplatform.domain.enums.CourseStatus;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 /**
  * Course aggregate root mapped to table {@code courses}.
@@ -36,6 +38,18 @@ public class Course extends BaseEntity {
 
     @TableField("duration_minutes")
     private Integer durationMinutes;
+
+    @TableField("max_capacity")
+    private Integer maxCapacity;
+
+    @TableField("course_date")
+    private LocalDate courseDate;
+
+    @TableField("class_start_time")
+    private LocalTime classStartTime;
+
+    @TableField("class_end_time")
+    private LocalTime classEndTime;
 
     private CourseStatus status = CourseStatus.PLANNED;
 
@@ -99,6 +113,38 @@ public class Course extends BaseEntity {
 
     public void setDurationMinutes(Integer durationMinutes) {
         this.durationMinutes = durationMinutes;
+    }
+
+    public Integer getMaxCapacity() {
+        return maxCapacity;
+    }
+
+    public void setMaxCapacity(Integer maxCapacity) {
+        this.maxCapacity = maxCapacity;
+    }
+
+    public LocalDate getCourseDate() {
+        return courseDate;
+    }
+
+    public void setCourseDate(LocalDate courseDate) {
+        this.courseDate = courseDate;
+    }
+
+    public LocalTime getClassStartTime() {
+        return classStartTime;
+    }
+
+    public void setClassStartTime(LocalTime classStartTime) {
+        this.classStartTime = classStartTime;
+    }
+
+    public LocalTime getClassEndTime() {
+        return classEndTime;
+    }
+
+    public void setClassEndTime(LocalTime classEndTime) {
+        this.classEndTime = classEndTime;
     }
 
     public CourseStatus getStatus() {

@@ -2,7 +2,9 @@ package com.shuzi.managementplatform.web.dto.course;
 
 import com.shuzi.managementplatform.domain.enums.CourseStatus;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 public record CourseResponse(
         Long id,
@@ -13,6 +15,11 @@ public record CourseResponse(
         String venue,
         LocalDateTime startTime,
         Integer durationMinutes,
+        Integer maxCapacity,
+        Long currentEnrollment,
+        LocalDate courseDate,
+        LocalTime classStartTime,
+        LocalTime classEndTime,
         CourseStatus status,
         String description,
         LocalDateTime createdAt,

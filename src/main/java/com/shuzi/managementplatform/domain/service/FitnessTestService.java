@@ -3,6 +3,7 @@ package com.shuzi.managementplatform.domain.service;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.shuzi.managementplatform.common.exception.BusinessException;
 import com.shuzi.managementplatform.common.exception.ResourceNotFoundException;
 import com.shuzi.managementplatform.domain.entity.FitnessTestRecord;
 import com.shuzi.managementplatform.domain.entity.Student;
@@ -10,9 +11,11 @@ import com.shuzi.managementplatform.domain.mapper.FitnessTestRecordMapper;
 import com.shuzi.managementplatform.web.dto.fitness.FitnessTestCreateRequest;
 import com.shuzi.managementplatform.web.dto.fitness.FitnessTestResponse;
 import com.shuzi.managementplatform.web.dto.fitness.FitnessTestUpdateRequest;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
 /**
  * Fitness test service for recording and querying student assessment timelines.
@@ -30,6 +33,7 @@ public class FitnessTestService {
 
     @Transactional
     public FitnessTestResponse create(FitnessTestCreateRequest request) {
+        validateTestDate(request.testDate());
         Student student = studentService.getEntityById(request.studentId());
 
         FitnessTestRecord record = new FitnessTestRecord();
@@ -46,6 +50,7 @@ public class FitnessTestService {
 
     @Transactional
     public FitnessTestResponse update(Long id, FitnessTestUpdateRequest request) {
+        validateTestDate(request.testDate());
         FitnessTestRecord record = fitnessTestRecordMapper.selectById(id);
         if (record == null) {
             throw new ResourceNotFoundException("fitness test record not found: " + id);
@@ -117,5 +122,11 @@ public class FitnessTestService {
                 record.getCreatedAt(),
                 record.getUpdatedAt()
         );
+    }
+
+    private void validateTestDate(LocalDate testDate) {
+        if (testDate != null && testDate.isAfter(LocalDate.now())) {
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "体测日期不能晚于当前日期");
+        }
     }
 }

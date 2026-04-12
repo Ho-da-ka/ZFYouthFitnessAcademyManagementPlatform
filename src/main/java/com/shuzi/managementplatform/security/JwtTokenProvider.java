@@ -4,6 +4,8 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -18,6 +20,8 @@ import java.util.Date;
  */
 @Component
 public class JwtTokenProvider {
+
+    private static final Logger log = LoggerFactory.getLogger(JwtTokenProvider.class);
 
     private static final String CLAIM_ROLE = "role";
     private static final String CLAIM_TYPE = "type";
@@ -78,6 +82,7 @@ public class JwtTokenProvider {
     private SecretKey buildSigningKey(String secret) {
         byte[] bytes = secret.getBytes(StandardCharsets.UTF_8);
         if (bytes.length < 32) {
+            log.warn("[SECURITY] JWT secret is shorter than 32 bytes and has been hashed. Please configure a strong secret in production.");
             try {
                 bytes = MessageDigest.getInstance("SHA-256").digest(bytes);
             } catch (Exception ex) {

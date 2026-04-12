@@ -37,11 +37,20 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(auth -> auth
                         // Public endpoints
-                        .requestMatchers("/api/v1/public/**", "/error").permitAll()
+                        .requestMatchers(
+                                "/api/v1/public/**",
+                                "/error",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
+                                "/v3/api-docs/**"
+                        ).permitAll()
                         .requestMatchers("/api/v1/auth/login", "/api/v1/auth/refresh", "/api/v1/auth/logout").permitAll()
                         // Admin-only management operations
-                        .requestMatchers(HttpMethod.POST, "/api/v1/students/**", "/api/v1/courses/**", "/api/v1/coaches/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/api/v1/students/**", "/api/v1/courses/**", "/api/v1/coaches/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/v1/students/**", "/api/v1/coaches/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/v1/students/**", "/api/v1/coaches/**").hasRole("ADMIN")
+                        // Course create/update now allowed for admin and coach
+                        .requestMatchers(HttpMethod.POST, "/api/v1/courses/**").hasAnyRole("ADMIN", "COACH")
+                        .requestMatchers(HttpMethod.PUT, "/api/v1/courses/**").hasAnyRole("ADMIN", "COACH")
                         .requestMatchers(HttpMethod.DELETE, "/api/v1/students/**", "/api/v1/coaches/**").hasRole("ADMIN")
                         // Admin and coach query operations
                         .requestMatchers(HttpMethod.GET, "/api/v1/students/**", "/api/v1/courses/**", "/api/v1/coaches/**")

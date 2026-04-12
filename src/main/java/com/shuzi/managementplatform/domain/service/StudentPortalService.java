@@ -20,7 +20,7 @@ import com.shuzi.managementplatform.domain.mapper.TrainingRecordMapper;
 import com.shuzi.managementplatform.domain.mapper.UserAccountMapper;
 import com.shuzi.managementplatform.web.dto.fitness.FitnessTestResponse;
 import com.shuzi.managementplatform.web.dto.student.StudentCourseResponse;
-import com.shuzi.managementplatform.web.dto.student.StudentProfileResponse;
+import com.shuzi.managementplatform.web.dto.student.StudentPortalProfileResponse;
 import com.shuzi.managementplatform.web.dto.training.TrainingRecordResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -72,9 +72,9 @@ public class StudentPortalService {
     }
 
     @Transactional
-    public StudentProfileResponse getProfile(String username) {
+    public StudentPortalProfileResponse getProfile(String username) {
         Student student = resolveStudent(username);
-        return new StudentProfileResponse(
+        return new StudentPortalProfileResponse(
                 student.getId(),
                 student.getStudentNo(),
                 student.getName(),

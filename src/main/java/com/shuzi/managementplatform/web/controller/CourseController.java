@@ -4,8 +4,10 @@ import com.shuzi.managementplatform.common.api.ApiResponse;
 import com.shuzi.managementplatform.common.api.PageResponse;
 import com.shuzi.managementplatform.domain.enums.CourseStatus;
 import com.shuzi.managementplatform.domain.service.CourseService;
+import com.shuzi.managementplatform.web.dto.course.CourseAttendanceStatsResponse;
 import com.shuzi.managementplatform.web.dto.course.CourseCreateRequest;
 import com.shuzi.managementplatform.web.dto.course.CourseResponse;
+import com.shuzi.managementplatform.web.dto.course.CourseStudentResponse;
 import com.shuzi.managementplatform.web.dto.course.CourseUpdateRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -20,6 +22,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 /**
  * Course management REST endpoints.
@@ -38,15 +42,22 @@ public class CourseController {
     @PreAuthorize("hasAnyRole('ADMIN','COACH')")
     @PostMapping
     @Operation(summary = "Create course", description = "Create a new course")
-    public ApiResponse<CourseResponse> create(@Valid @RequestBody CourseCreateRequest request) {
-        return ApiResponse.ok("course created", courseService.create(request));
+    public ApiResponse<CourseResponse> create(
+            @Valid @RequestBody CourseCreateRequest request,
+            @RequestParam(defaultValue = "false") boolean ignoreConflict
+    ) {
+        return ApiResponse.ok("course created", courseService.create(request, ignoreConflict));
     }
 
     @PreAuthorize("hasAnyRole('ADMIN','COACH')")
     @PutMapping("/{id}")
     @Operation(summary = "Update course", description = "Update course by ID")
-    public ApiResponse<CourseResponse> update(@PathVariable Long id, @Valid @RequestBody CourseUpdateRequest request) {
-        return ApiResponse.ok("course updated", courseService.update(id, request));
+    public ApiResponse<CourseResponse> update(
+            @PathVariable Long id,
+            @Valid @RequestBody CourseUpdateRequest request,
+            @RequestParam(defaultValue = "false") boolean ignoreConflict
+    ) {
+        return ApiResponse.ok("course updated", courseService.update(id, request, ignoreConflict));
     }
 
     @PreAuthorize("hasRole('ADMIN')")
@@ -77,5 +88,19 @@ public class CourseController {
             @RequestParam(required = false) CourseStatus status
     ) {
         return ApiResponse.ok(PageResponse.from(courseService.page(name, status, page, size)));
+    }
+
+    @PreAuthorize("hasAnyRole('ADMIN','COACH')")
+    @GetMapping("/{id}/students")
+    @Operation(summary = "Get enrolled students", description = "Get students with attendance stats for one course")
+    public ApiResponse<List<CourseStudentResponse>> getStudents(@PathVariable Long id) {
+        return ApiResponse.ok(courseService.getCourseStudents(id));
+    }
+
+    @PreAuthorize("hasAnyRole('ADMIN','COACH')")
+    @GetMapping("/{id}/attendance-stats")
+    @Operation(summary = "Get course attendance stats", description = "Get summary and trend for one course")
+    public ApiResponse<CourseAttendanceStatsResponse> getAttendanceStats(@PathVariable Long id) {
+        return ApiResponse.ok(courseService.getCourseAttendanceStats(id));
     }
 }

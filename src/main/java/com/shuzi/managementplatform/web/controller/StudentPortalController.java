@@ -4,7 +4,7 @@ import com.shuzi.managementplatform.common.api.ApiResponse;
 import com.shuzi.managementplatform.domain.service.StudentPortalService;
 import com.shuzi.managementplatform.web.dto.fitness.FitnessTestResponse;
 import com.shuzi.managementplatform.web.dto.student.StudentCourseResponse;
-import com.shuzi.managementplatform.web.dto.student.StudentProfileResponse;
+import com.shuzi.managementplatform.web.dto.student.StudentPortalProfileResponse;
 import com.shuzi.managementplatform.web.dto.training.TrainingRecordResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -33,7 +33,7 @@ public class StudentPortalController {
     @PreAuthorize("hasRole('STUDENT')")
     @GetMapping("/profile")
     @Operation(summary = "Get student profile", description = "Get current student profile by login identity")
-    public ApiResponse<StudentProfileResponse> profile(Authentication authentication) {
+    public ApiResponse<StudentPortalProfileResponse> profile(Authentication authentication) {
         return ApiResponse.ok(studentPortalService.getProfile(currentUsername(authentication)));
     }
 

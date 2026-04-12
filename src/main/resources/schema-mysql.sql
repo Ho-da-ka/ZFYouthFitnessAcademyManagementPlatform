@@ -55,6 +55,10 @@ CREATE TABLE IF NOT EXISTS courses (
     venue VARCHAR(128) NOT NULL,
     start_time DATETIME NOT NULL,
     duration_minutes INT NOT NULL,
+    max_capacity INT NULL,
+    course_date DATE NULL,
+    class_start_time TIME NULL,
+    class_end_time TIME NULL,
     status VARCHAR(16) NOT NULL,
     description VARCHAR(255) NULL,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -184,3 +188,9 @@ CREATE TABLE IF NOT EXISTS refresh_tokens (
     KEY idx_refresh_tokens_expires_at (expires_at),
     KEY idx_refresh_tokens_username (username)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+ALTER TABLE courses
+    ADD COLUMN IF NOT EXISTS max_capacity INT NULL,
+    ADD COLUMN IF NOT EXISTS course_date DATE NULL,
+    ADD COLUMN IF NOT EXISTS class_start_time TIME NULL,
+    ADD COLUMN IF NOT EXISTS class_end_time TIME NULL;

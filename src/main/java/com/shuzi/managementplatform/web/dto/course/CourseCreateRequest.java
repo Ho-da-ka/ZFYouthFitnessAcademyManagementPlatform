@@ -6,7 +6,9 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 public record CourseCreateRequest(
         @NotBlank(message = "courseCode is required")
@@ -35,6 +37,15 @@ public record CourseCreateRequest(
         @NotNull(message = "durationMinutes is required")
         @Min(value = 1, message = "durationMinutes must be greater than 0")
         Integer durationMinutes,
+
+        @Min(value = 1, message = "maxCapacity must be greater than 0")
+        Integer maxCapacity,
+
+        LocalDate courseDate,
+
+        LocalTime classStartTime,
+
+        LocalTime classEndTime,
 
         CourseStatus status,
 
