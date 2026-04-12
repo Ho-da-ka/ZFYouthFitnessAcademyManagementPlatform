@@ -10,7 +10,9 @@ import com.shuzi.managementplatform.domain.entity.FitnessTestRecord;
 import com.shuzi.managementplatform.domain.entity.InAppMessage;
 import com.shuzi.managementplatform.domain.entity.ParentAccount;
 import com.shuzi.managementplatform.domain.entity.ParentStudentRelation;
+import com.shuzi.managementplatform.domain.entity.StageEvaluation;
 import com.shuzi.managementplatform.domain.entity.Student;
+import com.shuzi.managementplatform.domain.entity.TrainingRecord;
 import com.shuzi.managementplatform.domain.entity.UserAccount;
 import com.shuzi.managementplatform.domain.enums.AttendanceStatus;
 import com.shuzi.managementplatform.domain.enums.CourseStatus;
@@ -23,6 +25,8 @@ import com.shuzi.managementplatform.domain.mapper.InAppMessageMapper;
 import com.shuzi.managementplatform.domain.mapper.ParentAccountMapper;
 import com.shuzi.managementplatform.domain.mapper.ParentStudentRelationMapper;
 import com.shuzi.managementplatform.domain.mapper.StudentMapper;
+import com.shuzi.managementplatform.domain.mapper.StageEvaluationMapper;
+import com.shuzi.managementplatform.domain.mapper.TrainingRecordMapper;
 import com.shuzi.managementplatform.domain.mapper.UserAccountMapper;
 import com.shuzi.managementplatform.web.dto.parent.ParentBookingCreateRequest;
 import com.shuzi.managementplatform.web.dto.parent.ParentBookingResponse;
@@ -31,6 +35,7 @@ import com.shuzi.managementplatform.web.dto.parent.ParentCheckinResponse;
 import com.shuzi.managementplatform.web.dto.parent.ParentChildResponse;
 import com.shuzi.managementplatform.web.dto.parent.ParentCourseResponse;
 import com.shuzi.managementplatform.web.dto.parent.ParentFitnessResponse;
+import com.shuzi.managementplatform.web.dto.parent.ParentGrowthOverviewResponse;
 import com.shuzi.managementplatform.web.dto.parent.ParentMessageResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -71,6 +76,9 @@ public class ParentPortalService {
     private final AttendanceRecordMapper attendanceRecordMapper;
     private final FitnessTestRecordMapper fitnessTestRecordMapper;
     private final InAppMessageMapper inAppMessageMapper;
+    private final TrainingRecordMapper trainingRecordMapper;
+    private final StageEvaluationMapper stageEvaluationMapper;
+    private final CareAlertService careAlertService;
 
     public ParentPortalService(
             UserAccountMapper userAccountMapper,
@@ -81,7 +89,10 @@ public class ParentPortalService {
             CourseBookingMapper courseBookingMapper,
             AttendanceRecordMapper attendanceRecordMapper,
             FitnessTestRecordMapper fitnessTestRecordMapper,
-            InAppMessageMapper inAppMessageMapper
+            InAppMessageMapper inAppMessageMapper,
+            TrainingRecordMapper trainingRecordMapper,
+            StageEvaluationMapper stageEvaluationMapper,
+            CareAlertService careAlertService
     ) {
         this.userAccountMapper = userAccountMapper;
         this.parentAccountMapper = parentAccountMapper;
@@ -92,6 +103,9 @@ public class ParentPortalService {
         this.attendanceRecordMapper = attendanceRecordMapper;
         this.fitnessTestRecordMapper = fitnessTestRecordMapper;
         this.inAppMessageMapper = inAppMessageMapper;
+        this.trainingRecordMapper = trainingRecordMapper;
+        this.stageEvaluationMapper = stageEvaluationMapper;
+        this.careAlertService = careAlertService;
     }
 
     @Transactional
@@ -290,6 +304,7 @@ public class ParentPortalService {
         attendance.setStatus(AttendanceStatus.PRESENT);
         attendance.setNote(trimNullable(request.note()) == null ? "家长小程序签到" : trimNullable(request.note()));
         attendanceRecordMapper.insert(attendance);
+        careAlertService.refreshStudentAlerts(booking.getStudentId());
 
         booking.setCheckinStatus(CHECKIN_STATUS_CHECKED_IN);
         booking.setCheckinTime(LocalDateTime.now());
@@ -365,6 +380,42 @@ public class ParentPortalService {
                         .orderByDesc(InAppMessage::getId)
         );
         return messages.stream().map(this::toMessageResponse).toList();
+    }
+
+    @Transactional
+    public ParentGrowthOverviewResponse getGrowthOverview(String username, Long studentId) {
+        ParentAccount parentAccount = resolveParentAccount(username);
+        assertStudentBound(parentAccount.getId(), studentId);
+
+        Student student = studentMapper.selectById(studentId);
+        if (student == null) {
+            throw new ResourceNotFoundException("student not found: " + studentId);
+        }
+
+        List<TrainingRecord> feedback = trainingRecordMapper.selectList(
+                Wrappers.<TrainingRecord>lambdaQuery()
+                        .eq(TrainingRecord::getStudentId, studentId)
+                        .orderByDesc(TrainingRecord::getTrainingDate, TrainingRecord::getId)
+                        .last("limit 5")
+        );
+        StageEvaluation latestEvaluation = stageEvaluationMapper.selectOne(
+                Wrappers.<StageEvaluation>lambdaQuery()
+                        .eq(StageEvaluation::getStudentId, studentId)
+                        .orderByDesc(StageEvaluation::getPeriodEnd, StageEvaluation::getId)
+                        .last("limit 1")
+        );
+
+        return new ParentGrowthOverviewResponse(
+                student.getId(),
+                student.getName(),
+                student.getGoalFocus(),
+                student.getTrainingTags(),
+                student.getRiskNotes(),
+                student.getGoalStartDate(),
+                student.getGoalEndDate(),
+                feedback.stream().map(this::toTrainingFeedbackItem).toList(),
+                latestEvaluation == null ? null : toGrowthEvaluation(latestEvaluation)
+        );
     }
 
     @Transactional
@@ -563,6 +614,31 @@ public class ParentPortalService {
                 Integer.valueOf(1).equals(message.getIsRead()),
                 message.getReadAt(),
                 message.getCreatedAt()
+        );
+    }
+
+    private ParentGrowthOverviewResponse.TrainingFeedbackItem toTrainingFeedbackItem(TrainingRecord record) {
+        return new ParentGrowthOverviewResponse.TrainingFeedbackItem(
+                record.getId(),
+                record.getTrainingDate(),
+                record.getTrainingContent(),
+                record.getHighlightNote(),
+                record.getImprovementNote(),
+                record.getParentAction(),
+                record.getNextStepSuggestion(),
+                record.getAiSummary(),
+                record.getParentReadAt()
+        );
+    }
+
+    private ParentGrowthOverviewResponse.GrowthEvaluation toGrowthEvaluation(StageEvaluation evaluation) {
+        return new ParentGrowthOverviewResponse.GrowthEvaluation(
+                evaluation.getCycleName(),
+                evaluation.getAttendanceRate() == null ? 0.0 : evaluation.getAttendanceRate().doubleValue(),
+                evaluation.getFitnessSummary(),
+                evaluation.getCoachEvaluation(),
+                evaluation.getNextStagePlan(),
+                evaluation.getParentReport()
         );
     }
 

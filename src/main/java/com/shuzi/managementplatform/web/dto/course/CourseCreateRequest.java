@@ -50,6 +50,18 @@ public record CourseCreateRequest(
         CourseStatus status,
 
         @Size(max = 255, message = "description max length is 255")
-        String description
+        String description,
+
+        @Size(max = 100, message = "trainingTheme max length is 100")
+        String trainingTheme,
+
+        @Size(max = 32, message = "targetAgeRange max length is 32")
+        String targetAgeRange,
+
+        @Size(max = 255, message = "targetGoals max length is 255")
+        String targetGoals,
+
+        @Size(max = 255, message = "focusPoints max length is 255")
+        String focusPoints
 ) {
 }

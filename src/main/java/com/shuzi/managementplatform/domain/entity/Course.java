@@ -55,6 +55,18 @@ public class Course extends BaseEntity {
 
     private String description;
 
+    @TableField("training_theme")
+    private String trainingTheme;
+
+    @TableField("target_age_range")
+    private String targetAgeRange;
+
+    @TableField("target_goals")
+    private String targetGoals;
+
+    @TableField("focus_points")
+    private String focusPoints;
+
     public Long getId() {
         return id;
     }
@@ -161,5 +173,37 @@ public class Course extends BaseEntity {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public String getTrainingTheme() {
+        return trainingTheme;
+    }
+
+    public void setTrainingTheme(String trainingTheme) {
+        this.trainingTheme = trainingTheme;
+    }
+
+    public String getTargetAgeRange() {
+        return targetAgeRange;
+    }
+
+    public void setTargetAgeRange(String targetAgeRange) {
+        this.targetAgeRange = targetAgeRange;
+    }
+
+    public String getTargetGoals() {
+        return targetGoals;
+    }
+
+    public void setTargetGoals(String targetGoals) {
+        this.targetGoals = targetGoals;
+    }
+
+    public String getFocusPoints() {
+        return focusPoints;
+    }
+
+    public void setFocusPoints(String focusPoints) {
+        this.focusPoints = focusPoints;
     }
 }

@@ -14,7 +14,13 @@ public record TrainingRecordResponse(
         Integer durationMinutes,
         String intensityLevel,
         String performanceSummary,
+        String highlightNote,
+        String improvementNote,
+        String parentAction,
+        String nextStepSuggestion,
         String coachComment,
+        String aiSummary,
+        LocalDateTime parentReadAt,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {

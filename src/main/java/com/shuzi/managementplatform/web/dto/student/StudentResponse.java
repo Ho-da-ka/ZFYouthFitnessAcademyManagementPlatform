@@ -16,6 +16,11 @@ public record StudentResponse(
         String guardianPhone,
         StudentStatus status,
         String remarks,
+        String goalFocus,
+        String trainingTags,
+        String riskNotes,
+        LocalDate goalStartDate,
+        LocalDate goalEndDate,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {

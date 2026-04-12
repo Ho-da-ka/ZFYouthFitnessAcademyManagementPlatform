@@ -88,6 +88,11 @@ public class StudentService {
         student.setGuardianPhone(request.guardianPhone());
         student.setStatus(request.status() == null ? StudentStatus.ACTIVE : request.status());
         student.setRemarks(request.remarks());
+        student.setGoalFocus(request.goalFocus());
+        student.setTrainingTags(request.trainingTags());
+        student.setRiskNotes(request.riskNotes());
+        student.setGoalStartDate(request.goalStartDate());
+        student.setGoalEndDate(request.goalEndDate());
         studentMapper.insert(student);
         userAccountService.upsertStudentAccount(student);
         return toResponse(student);
@@ -106,6 +111,11 @@ public class StudentService {
         student.setGuardianPhone(request.guardianPhone());
         student.setStatus(request.status());
         student.setRemarks(request.remarks());
+        student.setGoalFocus(request.goalFocus());
+        student.setTrainingTags(request.trainingTags());
+        student.setRiskNotes(request.riskNotes());
+        student.setGoalStartDate(request.goalStartDate());
+        student.setGoalEndDate(request.goalEndDate());
         studentMapper.updateById(student);
         userAccountService.upsertStudentAccount(student);
         return toResponse(student);
@@ -258,7 +268,12 @@ public class StudentService {
                             guardianName,
                             guardianPhone,
                             status,
-                            remarks
+                            remarks,
+                            null,
+                            null,
+                            null,
+                            null,
+                            null
                     ));
                     successCount += 1;
                 } catch (Exception ex) {
@@ -283,6 +298,11 @@ public class StudentService {
                 student.getGuardianPhone(),
                 student.getStatus(),
                 student.getRemarks(),
+                student.getGoalFocus(),
+                student.getTrainingTags(),
+                student.getRiskNotes(),
+                student.getGoalStartDate(),
+                student.getGoalEndDate(),
                 student.getCreatedAt(),
                 student.getUpdatedAt()
         );

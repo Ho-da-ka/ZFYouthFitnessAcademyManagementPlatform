@@ -39,6 +39,21 @@ public class Student extends BaseEntity {
 
     private String remarks;
 
+    @TableField("goal_focus")
+    private String goalFocus;
+
+    @TableField("training_tags")
+    private String trainingTags;
+
+    @TableField("risk_notes")
+    private String riskNotes;
+
+    @TableField("goal_start_date")
+    private LocalDate goalStartDate;
+
+    @TableField("goal_end_date")
+    private LocalDate goalEndDate;
+
     public Long getId() {
         return id;
     }
@@ -105,5 +120,45 @@ public class Student extends BaseEntity {
 
     public void setRemarks(String remarks) {
         this.remarks = remarks;
+    }
+
+    public String getGoalFocus() {
+        return goalFocus;
+    }
+
+    public void setGoalFocus(String goalFocus) {
+        this.goalFocus = goalFocus;
+    }
+
+    public String getTrainingTags() {
+        return trainingTags;
+    }
+
+    public void setTrainingTags(String trainingTags) {
+        this.trainingTags = trainingTags;
+    }
+
+    public String getRiskNotes() {
+        return riskNotes;
+    }
+
+    public void setRiskNotes(String riskNotes) {
+        this.riskNotes = riskNotes;
+    }
+
+    public LocalDate getGoalStartDate() {
+        return goalStartDate;
+    }
+
+    public void setGoalStartDate(LocalDate goalStartDate) {
+        this.goalStartDate = goalStartDate;
+    }
+
+    public LocalDate getGoalEndDate() {
+        return goalEndDate;
+    }
+
+    public void setGoalEndDate(LocalDate goalEndDate) {
+        this.goalEndDate = goalEndDate;
     }
 }

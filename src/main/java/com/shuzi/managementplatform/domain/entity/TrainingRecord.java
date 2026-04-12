@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.shuzi.managementplatform.common.model.BaseEntity;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 /**
  * Training record entity mapped to table {@code training_records}.
@@ -38,8 +39,26 @@ public class TrainingRecord extends BaseEntity {
     @TableField("performance_summary")
     private String performanceSummary;
 
+    @TableField("highlight_note")
+    private String highlightNote;
+
+    @TableField("improvement_note")
+    private String improvementNote;
+
+    @TableField("parent_action")
+    private String parentAction;
+
+    @TableField("next_step_suggestion")
+    private String nextStepSuggestion;
+
     @TableField("coach_comment")
     private String coachComment;
+
+    @TableField("ai_summary")
+    private String aiSummary;
+
+    @TableField("parent_read_at")
+    private LocalDateTime parentReadAt;
 
     public Long getId() {
         return id;
@@ -101,11 +120,59 @@ public class TrainingRecord extends BaseEntity {
         this.performanceSummary = performanceSummary;
     }
 
+    public String getHighlightNote() {
+        return highlightNote;
+    }
+
+    public void setHighlightNote(String highlightNote) {
+        this.highlightNote = highlightNote;
+    }
+
+    public String getImprovementNote() {
+        return improvementNote;
+    }
+
+    public void setImprovementNote(String improvementNote) {
+        this.improvementNote = improvementNote;
+    }
+
+    public String getParentAction() {
+        return parentAction;
+    }
+
+    public void setParentAction(String parentAction) {
+        this.parentAction = parentAction;
+    }
+
+    public String getNextStepSuggestion() {
+        return nextStepSuggestion;
+    }
+
+    public void setNextStepSuggestion(String nextStepSuggestion) {
+        this.nextStepSuggestion = nextStepSuggestion;
+    }
+
     public String getCoachComment() {
         return coachComment;
     }
 
     public void setCoachComment(String coachComment) {
         this.coachComment = coachComment;
+    }
+
+    public String getAiSummary() {
+        return aiSummary;
+    }
+
+    public void setAiSummary(String aiSummary) {
+        this.aiSummary = aiSummary;
+    }
+
+    public LocalDateTime getParentReadAt() {
+        return parentReadAt;
+    }
+
+    public void setParentReadAt(LocalDateTime parentReadAt) {
+        this.parentReadAt = parentReadAt;
     }
 }

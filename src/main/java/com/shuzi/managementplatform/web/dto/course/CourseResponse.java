@@ -22,6 +22,10 @@ public record CourseResponse(
         LocalTime classEndTime,
         CourseStatus status,
         String description,
+        String trainingTheme,
+        String targetAgeRange,
+        String targetGoals,
+        String focusPoints,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {

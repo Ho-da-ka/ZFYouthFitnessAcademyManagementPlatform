@@ -32,15 +32,18 @@ public class AttendanceService {
     private final AttendanceRecordMapper attendanceRecordMapper;
     private final StudentService studentService;
     private final CourseService courseService;
+    private final CareAlertService careAlertService;
 
     public AttendanceService(
             AttendanceRecordMapper attendanceRecordMapper,
             StudentService studentService,
-            CourseService courseService
+            CourseService courseService,
+            CareAlertService careAlertService
     ) {
         this.attendanceRecordMapper = attendanceRecordMapper;
         this.studentService = studentService;
         this.courseService = courseService;
+        this.careAlertService = careAlertService;
     }
 
     @Transactional
@@ -59,6 +62,7 @@ public class AttendanceService {
         record.setStatus(request.status());
         record.setNote(request.note());
         attendanceRecordMapper.insert(record);
+        careAlertService.refreshStudentAlerts(request.studentId());
         return toResponse(record, student, course);
     }
 
@@ -88,6 +92,9 @@ public class AttendanceService {
             attendanceRecordMapper.insert(record);
             result.add(toResponse(record, student, course));
         }
+        for (Long studentId : deduplicatedStudentIds) {
+            careAlertService.refreshStudentAlerts(studentId);
+        }
         return result;
     }
 
@@ -98,6 +105,7 @@ public class AttendanceService {
             throw new ResourceNotFoundException("attendance record not found: " + id);
         }
         attendanceRecordMapper.deleteById(id);
+        careAlertService.refreshStudentAlerts(record.getStudentId());
     }
 
     @Transactional
@@ -109,6 +117,7 @@ public class AttendanceService {
         record.setStatus(request.status());
         record.setNote(request.note());
         attendanceRecordMapper.updateById(record);
+        careAlertService.refreshStudentAlerts(record.getStudentId());
         return toResponse(record);
     }
 

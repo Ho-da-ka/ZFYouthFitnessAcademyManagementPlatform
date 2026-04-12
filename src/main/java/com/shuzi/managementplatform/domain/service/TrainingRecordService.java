@@ -28,15 +28,18 @@ public class TrainingRecordService {
     private final TrainingRecordMapper trainingRecordMapper;
     private final StudentService studentService;
     private final CourseService courseService;
+    private final GeneratedContentService generatedContentService;
 
     public TrainingRecordService(
             TrainingRecordMapper trainingRecordMapper,
             StudentService studentService,
-            CourseService courseService
+            CourseService courseService,
+            GeneratedContentService generatedContentService
     ) {
         this.trainingRecordMapper = trainingRecordMapper;
         this.studentService = studentService;
         this.courseService = courseService;
+        this.generatedContentService = generatedContentService;
     }
 
     @Transactional
@@ -46,7 +49,10 @@ public class TrainingRecordService {
 
         TrainingRecord record = new TrainingRecord();
         apply(record, request.studentId(), request.courseId(), request.trainingDate(), request.trainingContent(),
-                request.durationMinutes(), request.intensityLevel(), request.performanceSummary(), request.coachComment());
+                request.durationMinutes(), request.intensityLevel(), request.performanceSummary(),
+                request.highlightNote(), request.improvementNote(), request.parentAction(),
+                request.nextStepSuggestion(), request.coachComment(), request.summaryForParent());
+        record.setParentReadAt(null);
         trainingRecordMapper.insert(record);
         return toResponse(record, student, course);
     }
@@ -62,7 +68,9 @@ public class TrainingRecordService {
         Course course = courseService.getEntityById(request.courseId());
 
         apply(record, request.studentId(), request.courseId(), request.trainingDate(), request.trainingContent(),
-                request.durationMinutes(), request.intensityLevel(), request.performanceSummary(), request.coachComment());
+                request.durationMinutes(), request.intensityLevel(), request.performanceSummary(),
+                request.highlightNote(), request.improvementNote(), request.parentAction(),
+                request.nextStepSuggestion(), request.coachComment(), request.summaryForParent());
         trainingRecordMapper.updateById(record);
         return toResponse(record, student, course);
     }
@@ -133,7 +141,12 @@ public class TrainingRecordService {
             Integer durationMinutes,
             String intensityLevel,
             String performanceSummary,
-            String coachComment
+            String highlightNote,
+            String improvementNote,
+            String parentAction,
+            String nextStepSuggestion,
+            String coachComment,
+            String summaryForParent
     ) {
         record.setStudentId(studentId);
         record.setCourseId(courseId);
@@ -142,7 +155,22 @@ public class TrainingRecordService {
         record.setDurationMinutes(durationMinutes);
         record.setIntensityLevel(normalize(intensityLevel));
         record.setPerformanceSummary(normalize(performanceSummary));
+        record.setHighlightNote(normalize(highlightNote));
+        record.setImprovementNote(normalize(improvementNote));
+        record.setParentAction(normalize(parentAction));
+        record.setNextStepSuggestion(normalize(nextStepSuggestion));
         record.setCoachComment(normalize(coachComment));
+        String aiSummary = normalize(summaryForParent);
+        if (aiSummary == null) {
+            aiSummary = generatedContentService.generateTrainingSummary(
+                    record.getTrainingContent(),
+                    record.getHighlightNote(),
+                    record.getImprovementNote(),
+                    record.getParentAction(),
+                    record.getNextStepSuggestion()
+            );
+        }
+        record.setAiSummary(aiSummary);
     }
 
     private String normalize(String value) {
@@ -167,7 +195,13 @@ public class TrainingRecordService {
                 record.getDurationMinutes(),
                 record.getIntensityLevel(),
                 record.getPerformanceSummary(),
+                record.getHighlightNote(),
+                record.getImprovementNote(),
+                record.getParentAction(),
+                record.getNextStepSuggestion(),
                 record.getCoachComment(),
+                record.getAiSummary(),
+                record.getParentReadAt(),
                 record.getCreatedAt(),
                 record.getUpdatedAt()
         );

@@ -30,6 +30,8 @@ class FitnessTestServiceTest {
     private FitnessTestRecordMapper fitnessTestRecordMapper;
     @Mock
     private StudentService studentService;
+    @Mock
+    private CareAlertService careAlertService;
 
     @InjectMocks
     private FitnessTestService fitnessTestService;
@@ -51,6 +53,7 @@ class FitnessTestServiceTest {
                 1L, LocalDate.now(), "50米跑", BigDecimal.valueOf(8.9), "秒", "良好"));
 
         verify(fitnessTestRecordMapper, times(1)).insert(ArgumentMatchers.any(FitnessTestRecord.class));
+        verify(careAlertService).refreshStudentAlerts(1L);
     }
 
     @Test
@@ -70,6 +73,7 @@ class FitnessTestServiceTest {
         Assertions.assertEquals("立定跳远", record.getItemName());
         Assertions.assertEquals(BigDecimal.valueOf(210), record.getTestValue());
         verify(fitnessTestRecordMapper, times(1)).updateById(record);
+        verify(careAlertService).refreshStudentAlerts(1L);
     }
 
     @Test

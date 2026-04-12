@@ -85,6 +85,10 @@ public class CourseService {
         course.setClassEndTime(request.classEndTime());
         course.setStatus(request.status() == null ? CourseStatus.PLANNED : request.status());
         course.setDescription(request.description());
+        course.setTrainingTheme(request.trainingTheme());
+        course.setTargetAgeRange(request.targetAgeRange());
+        course.setTargetGoals(request.targetGoals());
+        course.setFocusPoints(request.focusPoints());
         courseMapper.insert(course);
         return toResponse(course);
     }
@@ -110,6 +114,10 @@ public class CourseService {
         course.setClassEndTime(request.classEndTime());
         course.setStatus(request.status());
         course.setDescription(request.description());
+        course.setTrainingTheme(request.trainingTheme());
+        course.setTargetAgeRange(request.targetAgeRange());
+        course.setTargetGoals(request.targetGoals());
+        course.setFocusPoints(request.focusPoints());
         courseMapper.updateById(course);
         return toResponse(course);
     }
@@ -260,6 +268,10 @@ public class CourseService {
                 course.getClassEndTime(),
                 course.getStatus(),
                 course.getDescription(),
+                course.getTrainingTheme(),
+                course.getTargetAgeRange(),
+                course.getTargetGoals(),
+                course.getFocusPoints(),
                 course.getCreatedAt(),
                 course.getUpdatedAt()
         );
