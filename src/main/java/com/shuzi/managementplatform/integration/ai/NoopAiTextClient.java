@@ -1,10 +1,10 @@
 package com.shuzi.managementplatform.integration.ai;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 @Component
-@ConditionalOnMissingBean(AiTextClient.class)
+@ConditionalOnProperty(prefix = "app.ai", name = "enabled", havingValue = "false", matchIfMissing = true)
 public class NoopAiTextClient implements AiTextClient {
 
     @Override

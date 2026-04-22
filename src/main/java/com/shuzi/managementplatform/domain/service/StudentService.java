@@ -55,19 +55,22 @@ public class StudentService {
     private final FitnessTestRecordMapper fitnessTestRecordMapper;
     private final TrainingRecordMapper trainingRecordMapper;
     private final UserAccountService userAccountService;
+    private final ParentAccountSyncService parentAccountSyncService;
 
     public StudentService(
             StudentMapper studentMapper,
             AttendanceRecordMapper attendanceRecordMapper,
             FitnessTestRecordMapper fitnessTestRecordMapper,
             TrainingRecordMapper trainingRecordMapper,
-            UserAccountService userAccountService
+            UserAccountService userAccountService,
+            ParentAccountSyncService parentAccountSyncService
     ) {
         this.studentMapper = studentMapper;
         this.attendanceRecordMapper = attendanceRecordMapper;
         this.fitnessTestRecordMapper = fitnessTestRecordMapper;
         this.trainingRecordMapper = trainingRecordMapper;
         this.userAccountService = userAccountService;
+        this.parentAccountSyncService = parentAccountSyncService;
     }
 
     @Transactional
@@ -95,6 +98,7 @@ public class StudentService {
         student.setGoalEndDate(request.goalEndDate());
         studentMapper.insert(student);
         userAccountService.upsertStudentAccount(student);
+        parentAccountSyncService.syncStudentGuardianBinding(student, null);
         return toResponse(student);
     }
 
@@ -104,6 +108,7 @@ public class StudentService {
         if (student == null) {
             throw new ResourceNotFoundException("student not found: " + id);
         }
+        String previousGuardianPhone = student.getGuardianPhone();
         student.setName(request.name());
         student.setGender(request.gender());
         student.setBirthDate(request.birthDate());
@@ -118,6 +123,7 @@ public class StudentService {
         student.setGoalEndDate(request.goalEndDate());
         studentMapper.updateById(student);
         userAccountService.upsertStudentAccount(student);
+        parentAccountSyncService.syncStudentGuardianBinding(student, previousGuardianPhone);
         return toResponse(student);
     }
 

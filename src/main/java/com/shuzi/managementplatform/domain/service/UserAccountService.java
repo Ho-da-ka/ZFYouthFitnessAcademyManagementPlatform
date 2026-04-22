@@ -124,6 +124,30 @@ public class UserAccountService {
     }
 
     @Transactional
+    public UserAccount upsertParentAccount(String phone, String displayName) {
+        String normalizedPhone = normalizeUsername(phone);
+        UserAccount account = userAccountMapper.selectOne(
+                Wrappers.<UserAccount>lambdaQuery()
+                        .eq(UserAccount::getUsername, normalizedPhone)
+                        .eq(UserAccount::getRole, "PARENT")
+        );
+        if (account == null) {
+            account = new UserAccount();
+            account.setUsername(normalizedPhone);
+            account.setRole("PARENT");
+            account.setStatus(STATUS_ACTIVE);
+            account.setPasswordHash(passwordEncoder.encode(buildParentInitialPassword(normalizedPhone)));
+            userAccountMapper.insert(account);
+            return account;
+        }
+        if (!STATUS_ACTIVE.equals(account.getStatus())) {
+            account.setStatus(STATUS_ACTIVE);
+            userAccountMapper.updateById(account);
+        }
+        return account;
+    }
+
+    @Transactional
     public void deleteByCoachId(Long coachId) {
         userAccountMapper.delete(Wrappers.<UserAccount>lambdaQuery().eq(UserAccount::getCoachId, coachId));
     }
@@ -180,6 +204,11 @@ public class UserAccountService {
 
     public String buildStudentInitialPassword(String studentNo) {
         return studentNo.trim() + "@123";
+    }
+
+    public String buildParentInitialPassword(String phone) {
+        String normalizedPhone = normalizeUsername(phone);
+        return normalizedPhone.substring(Math.max(0, normalizedPhone.length() - 6));
     }
 
     private void ensureSystemAccount(String username, String rawPassword, String role) {
@@ -260,6 +289,9 @@ public class UserAccountService {
     }
 
     private String resolveInitialPassword(UserAccount account) {
+        if ("PARENT".equals(account.getRole()) && StringUtils.hasText(account.getUsername())) {
+            return buildParentInitialPassword(account.getUsername());
+        }
         if (account.getCoachId() != null) {
             Coach coach = coachMapper.selectById(account.getCoachId());
             if (coach == null || !StringUtils.hasText(coach.getCoachCode())) {

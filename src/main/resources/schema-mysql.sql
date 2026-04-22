@@ -140,7 +140,7 @@ CREATE TABLE IF NOT EXISTS parent_accounts (
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     UNIQUE KEY uk_parent_accounts_user_account_id (user_account_id),
-    KEY idx_parent_accounts_phone (phone),
+    UNIQUE KEY uk_parent_accounts_phone (phone),
     CONSTRAINT fk_parent_accounts_user_account FOREIGN KEY (user_account_id) REFERENCES user_accounts(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -183,6 +183,7 @@ CREATE TABLE IF NOT EXISTS parent_student_relations (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     parent_account_id BIGINT NOT NULL,
     student_id BIGINT NOT NULL,
+    binding_type VARCHAR(16) NOT NULL DEFAULT 'AUTO',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     UNIQUE KEY uk_parent_student_relation (parent_account_id, student_id),
@@ -276,3 +277,6 @@ ALTER TABLE stage_evaluations
     ADD COLUMN IF NOT EXISTS next_stage_plan VARCHAR(500) NOT NULL,
     ADD COLUMN IF NOT EXISTS ai_interpretation VARCHAR(1000) NULL,
     ADD COLUMN IF NOT EXISTS parent_report VARCHAR(1000) NULL;
+
+ALTER TABLE parent_student_relations
+    ADD COLUMN IF NOT EXISTS binding_type VARCHAR(16) NOT NULL DEFAULT 'AUTO';

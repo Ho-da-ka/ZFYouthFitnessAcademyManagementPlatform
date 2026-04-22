@@ -464,41 +464,7 @@ public class ParentPortalService {
             parentAccountMapper.insert(parentAccount);
         }
 
-        ensureDefaultStudentBinding(parentAccount, normalizedUsername);
         return parentAccount;
-    }
-
-    private void ensureDefaultStudentBinding(ParentAccount parentAccount, String username) {
-        Long relationCount = parentStudentRelationMapper.selectCount(
-                Wrappers.<ParentStudentRelation>lambdaQuery()
-                        .eq(ParentStudentRelation::getParentAccountId, parentAccount.getId())
-        );
-        if (relationCount != null && relationCount > 0) {
-            return;
-        }
-
-        List<Student> candidates = Collections.emptyList();
-        if (StringUtils.hasText(parentAccount.getPhone())) {
-            candidates = studentMapper.selectList(
-                    Wrappers.<Student>lambdaQuery()
-                            .eq(Student::getGuardianPhone, parentAccount.getPhone())
-                            .eq(Student::getStatus, StudentStatus.ACTIVE)
-                            .orderByAsc(Student::getId)
-            );
-        }
-        if (candidates.isEmpty() && "parent".equals(username)) {
-            candidates = studentMapper.selectList(
-                    Wrappers.<Student>lambdaQuery()
-                            .eq(Student::getStatus, StudentStatus.ACTIVE)
-                            .orderByAsc(Student::getId)
-            );
-        }
-        for (Student student : candidates) {
-            ParentStudentRelation relation = new ParentStudentRelation();
-            relation.setParentAccountId(parentAccount.getId());
-            relation.setStudentId(student.getId());
-            parentStudentRelationMapper.insert(relation);
-        }
     }
 
     private List<Long> listBoundStudentIds(Long parentAccountId) {

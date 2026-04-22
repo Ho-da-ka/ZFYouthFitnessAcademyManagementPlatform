@@ -34,6 +34,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -149,5 +150,24 @@ class ParentPortalServiceTest {
 
         Assertions.assertEquals(AttendanceStatus.PRESENT, response.status());
         verify(careAlertService).refreshStudentAlerts(1L);
+    }
+
+    @Test
+    void listChildrenShouldNotCreateFallbackBindingOnLogin() {
+        UserAccount userAccount = new UserAccount();
+        userAccount.setUsername("13800138000");
+        userAccount.setRole("PARENT");
+        userAccount.setStatus("ACTIVE");
+
+        ParentAccount parentAccount = new ParentAccount();
+        ReflectionTestUtils.setField(parentAccount, "id", 12L);
+        parentAccount.setPhone("13800138000");
+
+        when(userAccountMapper.selectOne(any())).thenReturn(userAccount);
+        when(parentAccountMapper.selectOne(any())).thenReturn(parentAccount);
+        when(parentStudentRelationMapper.selectList(any())).thenReturn(List.of());
+
+        Assertions.assertTrue(parentPortalService.listChildren("13800138000").isEmpty());
+        verify(parentStudentRelationMapper, never()).insert(any(com.shuzi.managementplatform.domain.entity.ParentStudentRelation.class));
     }
 }
