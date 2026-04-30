@@ -278,5 +278,5 @@ ALTER TABLE stage_evaluations
     ADD COLUMN IF NOT EXISTS ai_interpretation VARCHAR(1000) NULL,
     ADD COLUMN IF NOT EXISTS parent_report VARCHAR(1000) NULL;
 
-ALTER TABLE parent_student_relations
-    ADD COLUMN IF NOT EXISTS binding_type VARCHAR(16) NOT NULL DEFAULT 'AUTO';
+-- MySQL 8.0.x does not accept ADD COLUMN IF NOT EXISTS in all environments.
+-- Existing databases are patched at startup by ParentRelationSchemaInitializer.
