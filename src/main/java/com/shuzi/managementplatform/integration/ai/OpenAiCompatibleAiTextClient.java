@@ -5,6 +5,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestClient;
 
 import java.util.List;
@@ -26,6 +27,9 @@ public class OpenAiCompatibleAiTextClient implements AiTextClient {
 
     @Override
     public String complete(String systemPrompt, String userPrompt) {
+        if (!StringUtils.hasText(properties.getApiKey())) {
+            throw new IllegalStateException("AI API key is not configured");
+        }
         ChatCompletionResponse response = restClient.post()
                 .uri("/chat/completions")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + properties.getApiKey())
@@ -36,7 +40,8 @@ public class OpenAiCompatibleAiTextClient implements AiTextClient {
                                 Map.of("role", "system", "content", systemPrompt),
                                 Map.of("role", "user", "content", userPrompt)
                         ),
-                        "temperature", 0.3
+                        "temperature", 0.3,
+                        "stream", false
                 ))
                 .retrieve()
                 .body(ChatCompletionResponse.class);

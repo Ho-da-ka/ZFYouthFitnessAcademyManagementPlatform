@@ -2,6 +2,7 @@ package com.shuzi.managementplatform.web.controller;
 
 import com.shuzi.managementplatform.common.api.ApiResponse;
 import com.shuzi.managementplatform.domain.service.ParentPortalService;
+import com.shuzi.managementplatform.web.dto.parent.ParentAiGrowthReportResponse;
 import com.shuzi.managementplatform.web.dto.parent.ParentBookingCreateRequest;
 import com.shuzi.managementplatform.web.dto.parent.ParentBookingResponse;
 import com.shuzi.managementplatform.web.dto.parent.ParentCheckinCreateRequest;
@@ -115,6 +116,16 @@ public class ParentPortalController {
             @RequestParam Long studentId
     ) {
         return ApiResponse.ok(parentPortalService.getGrowthOverview(currentUsername(authentication), studentId));
+    }
+
+    @PreAuthorize("hasRole('PARENT')")
+    @PostMapping("/ai/growth-report")
+    @Operation(summary = "Generate AI growth report", description = "Generate a DeepSeek-based growth report for one bound child on explicit parent request")
+    public ApiResponse<ParentAiGrowthReportResponse> generateAiGrowthReport(
+            Authentication authentication,
+            @RequestParam Long studentId
+    ) {
+        return ApiResponse.ok("AI growth report generated", parentPortalService.generateAiGrowthReport(currentUsername(authentication), studentId));
     }
 
     @PreAuthorize("hasRole('PARENT')")

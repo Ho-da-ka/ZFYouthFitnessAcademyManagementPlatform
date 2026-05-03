@@ -3,6 +3,7 @@ package com.shuzi.managementplatform.domain.service;
 import com.shuzi.managementplatform.domain.entity.ParentAccount;
 import com.shuzi.managementplatform.domain.entity.Course;
 import com.shuzi.managementplatform.domain.entity.CourseBooking;
+import com.shuzi.managementplatform.domain.entity.FitnessTestRecord;
 import com.shuzi.managementplatform.domain.entity.StageEvaluation;
 import com.shuzi.managementplatform.domain.entity.Student;
 import com.shuzi.managementplatform.domain.entity.TrainingRecord;
@@ -21,6 +22,7 @@ import com.shuzi.managementplatform.domain.mapper.TrainingRecordMapper;
 import com.shuzi.managementplatform.domain.mapper.UserAccountMapper;
 import com.shuzi.managementplatform.web.dto.parent.ParentCheckinCreateRequest;
 import com.shuzi.managementplatform.web.dto.parent.ParentCheckinResponse;
+import com.shuzi.managementplatform.web.dto.parent.ParentAiGrowthReportResponse;
 import com.shuzi.managementplatform.web.dto.parent.ParentGrowthOverviewResponse;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -34,6 +36,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -65,6 +68,8 @@ class ParentPortalServiceTest {
     private StageEvaluationMapper stageEvaluationMapper;
     @Mock
     private CareAlertService careAlertService;
+    @Mock
+    private GeneratedContentService generatedContentService;
 
     @InjectMocks
     private ParentPortalService parentPortalService;
@@ -112,6 +117,55 @@ class ParentPortalServiceTest {
         Assertions.assertEquals("coordination improvement", overview.goalFocus());
         Assertions.assertEquals(1, overview.recentTrainingFeedback().size());
         Assertions.assertNotNull(overview.latestEvaluation());
+    }
+
+    @Test
+    void generateAiGrowthReportShouldUseOnlyCurrentParentsBoundStudentData() {
+        UserAccount userAccount = new UserAccount();
+        userAccount.setUsername("parent");
+        userAccount.setRole("PARENT");
+        userAccount.setStatus("ACTIVE");
+
+        ParentAccount parentAccount = new ParentAccount();
+        ReflectionTestUtils.setField(parentAccount, "id", 9L);
+
+        Student student = new Student();
+        ReflectionTestUtils.setField(student, "id", 1L);
+        student.setName("阿斯蒂芬");
+        student.setGoalFocus("爆发力提升");
+
+        TrainingRecord trainingRecord = new TrainingRecord();
+        trainingRecord.setStudentId(1L);
+        trainingRecord.setTrainingDate(LocalDate.of(2026, 4, 15));
+        trainingRecord.setTrainingContent("立定跳远专项");
+
+        FitnessTestRecord fitnessTestRecord = new FitnessTestRecord();
+        fitnessTestRecord.setStudentId(1L);
+        fitnessTestRecord.setTestDate(LocalDate.of(2026, 4, 15));
+        fitnessTestRecord.setItemName("立定跳远");
+
+        when(userAccountMapper.selectOne(any())).thenReturn(userAccount);
+        when(parentAccountMapper.selectOne(any())).thenReturn(parentAccount);
+        when(parentStudentRelationMapper.selectCount(any())).thenReturn(1L);
+        when(studentMapper.selectById(1L)).thenReturn(student);
+        when(trainingRecordMapper.selectList(any())).thenReturn(List.of(trainingRecord));
+        when(fitnessTestRecordMapper.selectList(any())).thenReturn(List.of(fitnessTestRecord));
+        when(generatedContentService.generateStudentInsightSummaryResult(
+                eq(student),
+                eq(List.of(trainingRecord)),
+                eq(List.of(fitnessTestRecord))
+        )).thenReturn(new GeneratedContentService.GeneratedText("DeepSeek 成长解析", true));
+
+        ParentAiGrowthReportResponse response = parentPortalService.generateAiGrowthReport("parent", 1L);
+
+        Assertions.assertEquals("DeepSeek 成长解析", response.report());
+        Assertions.assertTrue(response.generatedByAi());
+        Assertions.assertNotNull(response.generatedAt());
+        verify(generatedContentService).generateStudentInsightSummaryResult(
+                eq(student),
+                eq(List.of(trainingRecord)),
+                eq(List.of(fitnessTestRecord))
+        );
     }
 
     @Test

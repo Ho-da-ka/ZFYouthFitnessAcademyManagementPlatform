@@ -32,6 +32,7 @@ import com.shuzi.managementplatform.web.dto.parent.ParentBookingCreateRequest;
 import com.shuzi.managementplatform.web.dto.parent.ParentBookingResponse;
 import com.shuzi.managementplatform.web.dto.parent.ParentCheckinCreateRequest;
 import com.shuzi.managementplatform.web.dto.parent.ParentCheckinResponse;
+import com.shuzi.managementplatform.web.dto.parent.ParentAiGrowthReportResponse;
 import com.shuzi.managementplatform.web.dto.parent.ParentChildResponse;
 import com.shuzi.managementplatform.web.dto.parent.ParentCourseResponse;
 import com.shuzi.managementplatform.web.dto.parent.ParentFitnessResponse;
@@ -79,6 +80,7 @@ public class ParentPortalService {
     private final TrainingRecordMapper trainingRecordMapper;
     private final StageEvaluationMapper stageEvaluationMapper;
     private final CareAlertService careAlertService;
+    private final GeneratedContentService generatedContentService;
 
     public ParentPortalService(
             UserAccountMapper userAccountMapper,
@@ -92,7 +94,8 @@ public class ParentPortalService {
             InAppMessageMapper inAppMessageMapper,
             TrainingRecordMapper trainingRecordMapper,
             StageEvaluationMapper stageEvaluationMapper,
-            CareAlertService careAlertService
+            CareAlertService careAlertService,
+            GeneratedContentService generatedContentService
     ) {
         this.userAccountMapper = userAccountMapper;
         this.parentAccountMapper = parentAccountMapper;
@@ -106,6 +109,7 @@ public class ParentPortalService {
         this.trainingRecordMapper = trainingRecordMapper;
         this.stageEvaluationMapper = stageEvaluationMapper;
         this.careAlertService = careAlertService;
+        this.generatedContentService = generatedContentService;
     }
 
     @Transactional
@@ -416,6 +420,36 @@ public class ParentPortalService {
                 feedback.stream().map(this::toTrainingFeedbackItem).toList(),
                 latestEvaluation == null ? null : toGrowthEvaluation(latestEvaluation)
         );
+    }
+
+    public ParentAiGrowthReportResponse generateAiGrowthReport(String username, Long studentId) {
+        ParentAccount parentAccount = resolveParentAccount(username);
+        assertStudentBound(parentAccount.getId(), studentId);
+
+        Student student = studentMapper.selectById(studentId);
+        if (student == null) {
+            throw new ResourceNotFoundException("student not found: " + studentId);
+        }
+
+        List<TrainingRecord> recentTrainingRecords = trainingRecordMapper.selectList(
+                Wrappers.<TrainingRecord>lambdaQuery()
+                        .eq(TrainingRecord::getStudentId, studentId)
+                        .orderByDesc(TrainingRecord::getTrainingDate, TrainingRecord::getId)
+                        .last("limit 8")
+        );
+        List<FitnessTestRecord> recentFitnessRecords = fitnessTestRecordMapper.selectList(
+                Wrappers.<FitnessTestRecord>lambdaQuery()
+                        .eq(FitnessTestRecord::getStudentId, studentId)
+                        .orderByDesc(FitnessTestRecord::getTestDate, FitnessTestRecord::getId)
+                        .last("limit 8")
+        );
+
+        GeneratedContentService.GeneratedText generated = generatedContentService.generateStudentInsightSummaryResult(
+                student,
+                recentTrainingRecords,
+                recentFitnessRecords
+        );
+        return new ParentAiGrowthReportResponse(generated.text(), generated.generatedByAi(), LocalDateTime.now());
     }
 
     @Transactional

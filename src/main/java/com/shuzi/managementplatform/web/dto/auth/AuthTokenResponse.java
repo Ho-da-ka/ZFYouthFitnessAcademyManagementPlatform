@@ -9,6 +9,7 @@ public record AuthTokenResponse(
         long accessTokenExpiresIn,
         String refreshToken,
         String username,
+        String nickname,
         String role
 ) {
 }

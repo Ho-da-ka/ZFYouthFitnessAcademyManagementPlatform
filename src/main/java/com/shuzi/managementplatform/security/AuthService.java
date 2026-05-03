@@ -1,6 +1,12 @@
 package com.shuzi.managementplatform.security;
 
-import com.shuzi.managementplatform.common.exception.BusinessException;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.shuzi.managementplatform.domain.entity.Coach;
+import com.shuzi.managementplatform.domain.entity.Student;
+import com.shuzi.managementplatform.domain.entity.UserAccount;
+import com.shuzi.managementplatform.domain.mapper.CoachMapper;
+import com.shuzi.managementplatform.domain.mapper.StudentMapper;
+import com.shuzi.managementplatform.domain.mapper.UserAccountMapper;
 import com.shuzi.managementplatform.domain.service.UserAccountService;
 import com.shuzi.managementplatform.web.dto.auth.AuthTokenResponse;
 import com.shuzi.managementplatform.web.dto.auth.LoginRequest;
@@ -27,6 +33,9 @@ public class AuthService {
     private final RefreshTokenStore refreshTokenStore;
     private final UserAccountService userAccountService;
     private final LoginCryptoService loginCryptoService;
+    private final UserAccountMapper userAccountMapper;
+    private final CoachMapper coachMapper;
+    private final StudentMapper studentMapper;
 
     public AuthService(
             UserDetailsService userDetailsService,
@@ -34,7 +43,10 @@ public class AuthService {
             JwtTokenProvider jwtTokenProvider,
             RefreshTokenStore refreshTokenStore,
             UserAccountService userAccountService,
-            LoginCryptoService loginCryptoService
+            LoginCryptoService loginCryptoService,
+            UserAccountMapper userAccountMapper,
+            CoachMapper coachMapper,
+            StudentMapper studentMapper
     ) {
         this.userDetailsService = userDetailsService;
         this.passwordEncoder = passwordEncoder;
@@ -42,6 +54,9 @@ public class AuthService {
         this.refreshTokenStore = refreshTokenStore;
         this.userAccountService = userAccountService;
         this.loginCryptoService = loginCryptoService;
+        this.userAccountMapper = userAccountMapper;
+        this.coachMapper = coachMapper;
+        this.studentMapper = studentMapper;
     }
 
     public AuthTokenResponse login(LoginRequest request) {
@@ -63,12 +78,15 @@ public class AuthService {
         RefreshTokenSession refreshTokenSession = refreshTokenStore.issue(userDetails.getUsername(), role);
         userAccountService.markLoginSuccess(userDetails.getUsername());
 
+        String nickname = resolveNickname(userDetails.getUsername());
+
         return new AuthTokenResponse(
                 "Bearer",
                 accessToken,
                 jwtTokenProvider.getAccessTokenExpireSeconds(),
                 refreshTokenSession.token(),
                 userDetails.getUsername(),
+                nickname,
                 role
         );
     }
@@ -82,14 +100,42 @@ public class AuthService {
         String accessToken = jwtTokenProvider.generateAccessToken(oldSession.username(), oldSession.role());
         RefreshTokenSession newSession = refreshTokenStore.issue(oldSession.username(), oldSession.role());
 
+        String nickname = resolveNickname(oldSession.username());
+
         return new AuthTokenResponse(
                 "Bearer",
                 accessToken,
                 jwtTokenProvider.getAccessTokenExpireSeconds(),
                 newSession.token(),
                 oldSession.username(),
+                nickname,
                 oldSession.role()
         );
+    }
+
+    private String resolveNickname(String username) {
+        UserAccount account = userAccountMapper.selectOne(
+                Wrappers.<UserAccount>lambdaQuery().eq(UserAccount::getUsername, username)
+        );
+        if (account == null) {
+            return username;
+        }
+
+        if (account.getCoachId() != null) {
+            Coach coach = coachMapper.selectById(account.getCoachId());
+            if (coach != null && StringUtils.hasText(coach.getName())) {
+                return coach.getName();
+            }
+        }
+
+        if (account.getStudentId() != null) {
+            Student student = studentMapper.selectById(account.getStudentId());
+            if (student != null && StringUtils.hasText(student.getName())) {
+                return student.getName();
+            }
+        }
+
+        return username;
     }
 
     public void logout(String refreshToken) {
