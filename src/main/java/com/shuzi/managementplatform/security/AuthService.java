@@ -1,5 +1,6 @@
 package com.shuzi.managementplatform.security;
 
+import com.shuzi.managementplatform.common.exception.BusinessException;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.shuzi.managementplatform.domain.entity.Coach;
 import com.shuzi.managementplatform.domain.entity.Student;

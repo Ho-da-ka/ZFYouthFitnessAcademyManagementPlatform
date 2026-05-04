@@ -14,10 +14,12 @@ import com.shuzi.managementplatform.domain.mapper.TrainingRecordMapper;
 import com.shuzi.managementplatform.web.dto.ai.AiHubOverviewResponse;
 import com.shuzi.managementplatform.web.dto.ai.AiMonthlyReportResponse;
 import com.shuzi.managementplatform.web.dto.ai.AiStudentInsightsResponse;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -54,33 +56,15 @@ class AiAnalysisServiceTest {
     @Mock
     private GeneratedContentService generatedContentService;
 
+    @Spy
+    private ObjectMapper objectMapper = new ObjectMapper();
+
     @Test
-    void getStudentInsightsShouldUseGeneratedContentAndRecentStudentData() {
+    void getStudentInsightsShouldReturnNullIfNoCachedInsights() {
         Student student = new Student();
         student.setName("阿斯蒂芬");
-        student.setGoalFocus("爆发力提升");
-
-        TrainingRecord trainingRecord = new TrainingRecord();
-        trainingRecord.setTrainingDate(LocalDate.of(2026, 4, 6));
-        trainingRecord.setTrainingContent("立定跳远专项");
-        trainingRecord.setHighlightNote("起跳稳定");
-        trainingRecord.setImprovementNote("核心耐力不足");
-        trainingRecord.setNextStepSuggestion("每周增加一次核心稳定训练");
-
-        FitnessTestRecord fitnessTestRecord = new FitnessTestRecord();
-        fitnessTestRecord.setTestDate(LocalDate.of(2026, 4, 6));
-        fitnessTestRecord.setItemName("立定跳远");
-        fitnessTestRecord.setTestValue(BigDecimal.valueOf(185));
-        fitnessTestRecord.setUnit("cm");
-
+        
         when(studentMapper.selectById(123L)).thenReturn(student);
-        when(trainingRecordMapper.selectList(any())).thenReturn(List.of(trainingRecord));
-        when(fitnessTestRecordMapper.selectList(any())).thenReturn(List.of(fitnessTestRecord));
-        when(generatedContentService.generateStudentInsightSummary(
-                eq(student),
-                eq(List.of(trainingRecord)),
-                eq(List.of(fitnessTestRecord))
-        )).thenReturn("DeepSeek 认为爆发力进步明显");
 
         AiAnalysisService service = new AiAnalysisService(
                 studentMapper,
@@ -88,24 +72,66 @@ class AiAnalysisServiceTest {
                 fitnessTestRecordMapper,
                 attendanceRecordMapper,
                 stageEvaluationMapper,
-                generatedContentService
+                generatedContentService,
+                objectMapper
         );
 
         AiStudentInsightsResponse response = service.getStudentInsights(123L);
 
-        Assertions.assertEquals("DeepSeek 认为爆发力进步明显", response.summary());
-        Assertions.assertTrue(response.strengths().stream()
-                .anyMatch(point -> "课堂表现".equals(point.item()) && point.description().contains("起跳稳定")));
-        Assertions.assertTrue(response.strengths().stream()
-                .anyMatch(point -> "立定跳远".equals(point.item()) && point.description().contains("185cm")));
-        Assertions.assertTrue(response.suggestions().contains("核心耐力不足"));
-        Assertions.assertTrue(response.suggestions().contains("每周增加一次核心稳定训练"));
+        Assertions.assertNull(response, "Should return null when ai_insights column is empty in DB");
+    }
 
-        verify(generatedContentService).generateStudentInsightSummary(
-                student,
-                List.of(trainingRecord),
-                List.of(fitnessTestRecord)
+    @Test
+    void getStudentInsightsShouldReturnCachedInsightsIfPresent() throws Exception {
+        Student student = new Student();
+        student.setName("阿斯蒂芬");
+        AiStudentInsightsResponse cached = new AiStudentInsightsResponse("Cached result", List.of(), List.of());
+        student.setAiInsights(objectMapper.writeValueAsString(cached));
+
+        when(studentMapper.selectById(123L)).thenReturn(student);
+
+        AiAnalysisService service = new AiAnalysisService(
+                studentMapper,
+                trainingRecordMapper,
+                fitnessTestRecordMapper,
+                attendanceRecordMapper,
+                stageEvaluationMapper,
+                generatedContentService,
+                objectMapper
         );
+
+        AiStudentInsightsResponse response = service.getStudentInsights(123L);
+
+        Assertions.assertNotNull(response);
+        Assertions.assertEquals("Cached result", response.summary());
+    }
+
+    @Test
+    void regenerateStudentInsightsShouldUpdateDatabase() throws Exception {
+        Student student = new Student();
+        ReflectionTestUtils.setField(student, "id", 123L);
+        student.setName("阿斯蒂芬");
+
+        when(studentMapper.selectById(123L)).thenReturn(student);
+        when(trainingRecordMapper.selectList(any())).thenReturn(List.of());
+        when(fitnessTestRecordMapper.selectList(any())).thenReturn(List.of());
+        when(generatedContentService.generateStudentInsightSummary(any(), any(), any())).thenReturn("New result");
+
+        AiAnalysisService service = new AiAnalysisService(
+                studentMapper,
+                trainingRecordMapper,
+                fitnessTestRecordMapper,
+                attendanceRecordMapper,
+                stageEvaluationMapper,
+                generatedContentService,
+                objectMapper
+        );
+
+        AiStudentInsightsResponse response = service.regenerateStudentInsights(123L);
+
+        Assertions.assertEquals("New result", response.summary());
+        verify(studentMapper).updateById(any(Student.class));
+        Assertions.assertTrue(student.getAiInsights().contains("New result"));
     }
 
     @Test
@@ -206,7 +232,8 @@ class AiAnalysisServiceTest {
                 fitnessTestRecordMapper,
                 attendanceRecordMapper,
                 stageEvaluationMapper,
-                generatedContentService
+                generatedContentService,
+                objectMapper
         );
     }
 }

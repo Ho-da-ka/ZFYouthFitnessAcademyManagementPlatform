@@ -16,6 +16,8 @@ import com.shuzi.managementplatform.domain.mapper.TrainingRecordMapper;
 import com.shuzi.managementplatform.web.dto.ai.AiHubOverviewResponse;
 import com.shuzi.managementplatform.web.dto.ai.AiMonthlyReportResponse;
 import com.shuzi.managementplatform.web.dto.ai.AiStudentInsightsResponse;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -43,6 +45,7 @@ public class AiAnalysisService {
     private final AttendanceRecordMapper attendanceRecordMapper;
     private final StageEvaluationMapper stageEvaluationMapper;
     private final GeneratedContentService generatedContentService;
+    private final ObjectMapper objectMapper;
 
     public AiAnalysisService(
             StudentMapper studentMapper,
@@ -50,7 +53,8 @@ public class AiAnalysisService {
             FitnessTestRecordMapper fitnessTestRecordMapper,
             AttendanceRecordMapper attendanceRecordMapper,
             StageEvaluationMapper stageEvaluationMapper,
-            GeneratedContentService generatedContentService
+            GeneratedContentService generatedContentService,
+            ObjectMapper objectMapper
     ) {
         this.studentMapper = studentMapper;
         this.trainingRecordMapper = trainingRecordMapper;
@@ -58,10 +62,33 @@ public class AiAnalysisService {
         this.attendanceRecordMapper = attendanceRecordMapper;
         this.stageEvaluationMapper = stageEvaluationMapper;
         this.generatedContentService = generatedContentService;
+        this.objectMapper = objectMapper;
     }
 
     @Transactional(readOnly = true)
     public AiStudentInsightsResponse getStudentInsights(Long studentId) {
+        System.out.println("DEBUG: Entering getStudentInsights for student: " + studentId);
+        Student student = studentMapper.selectById(studentId);
+        if (student == null) {
+            throw new ResourceNotFoundException("student not found: " + studentId);
+        }
+
+        if (StringUtils.hasText(student.getAiInsights())) {
+            System.out.println("DEBUG: Found cached insights in DB for student: " + studentId);
+            try {
+                return objectMapper.readValue(student.getAiInsights(), AiStudentInsightsResponse.class);
+            } catch (JsonProcessingException e) {
+                System.out.println("DEBUG: Failed to parse cached insights: " + e.getMessage());
+            }
+        }
+        
+        System.out.println("DEBUG: No cached insights found for student: " + studentId + ", returning null");
+        return null;
+    }
+
+    @Transactional
+    public AiStudentInsightsResponse regenerateStudentInsights(Long studentId) {
+        System.out.println("DEBUG: Manually regenerating insights for student: " + studentId);
         Student student = studentMapper.selectById(studentId);
         if (student == null) {
             throw new ResourceNotFoundException("student not found: " + studentId);
@@ -85,11 +112,21 @@ public class AiAnalysisService {
                 recentTrainingRecords,
                 recentFitnessRecords
         );
-        return new AiStudentInsightsResponse(
+        
+        AiStudentInsightsResponse response = new AiStudentInsightsResponse(
                 summary,
                 buildStrengths(student, recentTrainingRecords, recentFitnessRecords),
                 buildSuggestions(student, recentTrainingRecords)
         );
+
+        try {
+            student.setAiInsights(objectMapper.writeValueAsString(response));
+            studentMapper.updateById(student);
+        } catch (JsonProcessingException e) {
+            // Log error
+        }
+
+        return response;
     }
 
     @Transactional(readOnly = true)

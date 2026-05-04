@@ -107,6 +107,16 @@ public class CareAlertService {
         return careAlertMapper.selectList(query).stream().map(this::toResponse).toList();
     }
 
+    @Transactional
+    public void resolveAlert(Long alertId) {
+        CareAlert alert = careAlertMapper.selectById(alertId);
+        if (alert != null && STATUS_OPEN.equals(alert.getStatus())) {
+            alert.setStatus(STATUS_RESOLVED);
+            alert.setResolvedAt(LocalDateTime.now());
+            careAlertMapper.updateById(alert);
+        }
+    }
+
     private Map<String, AlertDraft> evaluateActiveAlerts(Long studentId, LocalDate goalEndDate, LocalDate today) {
         Map<String, AlertDraft> drafts = new LinkedHashMap<>();
         LocalDateTime triggeredAt = today.atStartOfDay();

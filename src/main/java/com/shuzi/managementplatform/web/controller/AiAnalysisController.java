@@ -52,6 +52,13 @@ public class AiAnalysisController {
         return ApiResponse.ok(aiAnalysisService.getStudentInsights(studentId));
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN','COACH','PARENT')")
+    @PostMapping("/student-insights/{studentId}/regenerate")
+    @Operation(summary = "Force regenerate AI-driven student insights")
+    public ApiResponse<AiStudentInsightsResponse> regenerateStudentInsights(@PathVariable Long studentId) {
+        return ApiResponse.ok(aiAnalysisService.regenerateStudentInsights(studentId));
+    }
+
     @PreAuthorize("hasAnyRole('ADMIN','COACH')")
     @GetMapping("/hub-overview")
     @Operation(summary = "Get AI hub overview generated from real operational data")

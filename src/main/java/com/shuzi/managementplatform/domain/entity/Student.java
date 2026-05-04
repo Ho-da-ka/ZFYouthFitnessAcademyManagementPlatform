@@ -54,6 +54,9 @@ public class Student extends BaseEntity {
     @TableField("goal_end_date")
     private LocalDate goalEndDate;
 
+    @TableField("ai_insights")
+    private String aiInsights;
+
     public Long getId() {
         return id;
     }
@@ -160,5 +163,13 @@ public class Student extends BaseEntity {
 
     public void setGoalEndDate(LocalDate goalEndDate) {
         this.goalEndDate = goalEndDate;
+    }
+
+    public String getAiInsights() {
+        return aiInsights;
+    }
+
+    public void setAiInsights(String aiInsights) {
+        this.aiInsights = aiInsights;
     }
 }
